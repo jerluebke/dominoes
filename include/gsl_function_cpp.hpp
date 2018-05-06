@@ -18,13 +18,13 @@
  *
  */
 template<typename F>
-class gsl_function_cpp : public gsl_function
+class GslFunctionCpp : public gsl_function
 {
     public:
-        gsl_function_cpp(const F& func)
+        GslFunctionCpp(const F& func)
             : m_func(func)
         {
-            function = &gsl_function_cpp::invoke;
+            function = &GslFunctionCpp::invoke;
             params = this;
         }
 
@@ -32,6 +32,6 @@ class gsl_function_cpp : public gsl_function
         const F& m_func;
         static double invoke(double x, void* params)
         {
-            return static_cast<gsl_function_cpp*>(params)->m_func(x);
+            return static_cast<GslFunctionCpp*>(params)->m_func(x);
         }
 };

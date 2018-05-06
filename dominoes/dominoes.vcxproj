@@ -121,10 +121,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\domino_chain.hpp" />
     <ClInclude Include="..\include\gsl_function_cpp.hpp" />
     <ClInclude Include="..\include\integrator.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\domino_chain.cpp" />
     <ClCompile Include="..\src\main.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">D:\source\gsl\build-dir</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\source\gsl\build-dir;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

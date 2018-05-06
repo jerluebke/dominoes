@@ -21,9 +21,15 @@
     <ClInclude Include="..\include\integrator.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\domino_chain.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\domino_chain.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
