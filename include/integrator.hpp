@@ -47,7 +47,7 @@ class gsl_quad
                 {return this->m_func(x);};
             gsl_function_cpp<decltype(func_ptr)> f(func_ptr);
             // cast to gsl_function
-            gsl_func_ptr gsl_f = static_cast<gsl_func_ptr>(&f);
+            gsl_function* gsl_f = static_cast<gsl_function*>(&f);
 
             // do integration
             // gsl_f is already a pointer
@@ -57,17 +57,9 @@ class gsl_quad
                     &result, &error );
 
             if (status)
-                handleError();
+                handleError(status);
 
             return result;
-        }
-
-        static double doit(F func, tuple const& range,
-                double epsabs = 1.49e-8, double epsrel = 1.49e-8,
-                int limit = 1000)
-        {
-            return gsl_quad<F>(func, limit).integrate(
-                    range.first, range.second, epsabs, epsrel);
         }
 
     private:
@@ -79,6 +71,18 @@ class gsl_quad
         {
             std::stringstream msg;
             msg << "GSL ERROR: " << std::string(gsl_strerror(status));
+			msg << " (errno " << status << ")";
             throw std::runtime_error(msg.str());
         }
+
 };
+
+
+template<typename F>
+double doit(F func, tuple const& range,
+        double epsabs = 1.49e-8, double epsrel = 1.49e-8,
+        int limit = 1000)
+{
+    return gsl_quad<F>(func, limit).integrate(
+            range.first, range.second, epsabs, epsrel);
+}
