@@ -13,7 +13,6 @@ DominoChain::DominoChain(domino d, int N, int D, double mu)
 {
     m_phi = std::atan2(m_h, m_L);
     m_omega = std::sqrt(3*G*std::cos(m_phi)/(2*m_L));
-    m_integrator(theta_dot, limit);
 }
 
 
@@ -70,7 +69,7 @@ double_vec_2d DominoChain::make_velocity_array(double_vec& lambdas,
  *   result[0][i]   :   spacial coordinate x(i) = i*(λ+h)
  *   result[0][i]   :   angular velocity of the i-th domino
  *   result[1][i]   :   transversal velocity at the i-th domino
- *  
+ *
  */
 double_vec_2d DominoChain::make_velocity_array(double initial_angular,
         double lambda, size_t limit = 1000) const

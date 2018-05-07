@@ -2,11 +2,14 @@
 #include <iostream>
 #include <cmath>
 
+// TODO: remove this
 typedef struct params_struct
 {
     double c;
 } params;
 
+// TODO: write test program for DominoChain
+// TODO: rename files according to class names
 int main()
 {
     // auto f = [](double x)->double{return -(x*x)+1;};
