@@ -28,6 +28,7 @@ class GslFunctionCpp : public gsl_function
             params = this;
         }
 
+
     private:
         const F& m_func;
         static double invoke(double x, void* params)

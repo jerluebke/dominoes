@@ -1,5 +1,18 @@
 # Dominoes
 ---
+### Questions
+ *  Use valarray for operations  
+ .. valarray.apply doesn't take capturing lambdas -> workaround?
+ .. is it worth it? performance compared to vector
+ *  Have GslQuad object as static member or initilize it newly each time a
+    corresponding function is called?  
+ .. How to implement a static solution? How to pass a member method without
+ too much wrapping?
+ *  What about the destructor of `gsl_integration_workspace`
+ [here](https://stackoverflow.com/a/24151084/9133910)? Why is it better than
+ passing `gsl_workspace_free` as a functor?
+
+---
 ### API
 ##### Intrinsic speed
  *  Input  

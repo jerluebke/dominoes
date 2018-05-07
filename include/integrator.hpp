@@ -7,13 +7,10 @@
 #include <functional>
 #include <stdexcept>
 #include <sstream>
-#include <string>
-#include <utility>
 
 typedef std::unique_ptr< gsl_integration_workspace,
         std::function<void(gsl_integration_workspace*)>
         > gsl_integration_workspace_cpp;
-typedef std::unique_ptr<gsl_function> gsl_func_ptr;
 typedef std::pair<double, double> tuple;
 
 /*
@@ -31,8 +28,8 @@ template<typename F>
 class GslQuad
 {
     public:
-        GslQuad(F func, size_t limit)
-            : m_gsl_wrapper(func)
+        GslQuad(F func, size_t limit = 1000)
+            : m_func(func)
             , m_limit(limit)
             , m_workspace(gsl_integration_workspace_alloc(limit),
                     gsl_integration_workspace_free)
@@ -41,10 +38,17 @@ class GslQuad
             gsl_set_error_handler_off();
         }
 
-        double integrate(double min, double max, double epsabs, double epsrel)
+        template<typename P>
+        double integrate(P params, double min, double max,
+                double epsabs = 1.49e-8, double epsrel = 1.49e-8)
         {
+            // bind member method for c++ wrapper
+            auto func_ptr = [this, params](double x)->double
+                { return this->m_func(x, params); };
+            // make c++ wrapper
+            GslFunctionCpp<decltype(func_ptr)> gsl_wrapper(func_ptr);
             // cast c++ wrapper to gsl_function
-            gsl_function* gsl_f = static_cast<gsl_function*>(&m_gsl_wrapper);
+            gsl_function* gsl_f = static_cast<gsl_function*>(&gsl_wrapper);
 
             // do integration
             double result, error;
@@ -53,17 +57,18 @@ class GslQuad
                     &result, &error );
 
             if (status)
-                _handle_error(status);
+                handle_error(status);
 
             return result;
         }
 
+
     private:
+        F m_func;
         size_t m_limit;
-        GslFunctionCpp<F> m_gsl_wrapper;
         gsl_integration_workspace_cpp m_workspace;
 
-        void _handle_error(int status) const
+        void handle_error(int status) const
         {
             std::stringstream msg;
             msg << "GSL ERROR: " << std::string(gsl_strerror(status));
@@ -74,11 +79,11 @@ class GslQuad
 };
 
 
-template<typename F>
-double doit(F func, tuple const& range,
+template<typename F, typename P>
+double doit(F func, tuple const& range, P params,
         double epsabs = 1.49e-8, double epsrel = 1.49e-8,
-        int limit = 1000)
+        int limit = 100)
 {
-    return GslQuad<F>(func, limit).integrate(
+    return GslQuad<F>(func, limit).integrate(params,
             range.first, range.second, epsabs, epsrel);
 }
