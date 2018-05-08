@@ -6,7 +6,7 @@
 typedef std::vector<double> double_vec;
 typedef std::vector< std::vector<double> > double_vec_2d;
 
-typedef struct domino
+typedef struct domino_struct
 {
     double height;
     double width;
@@ -22,29 +22,41 @@ typedef struct params_struct
 class DominoChain
 {
     public:
-        DominoChain (domino d, int N, int D, double mu);
+        DominoChain (domino d, int N, int D,
+                int limit, double epsabs, double epsrel);
 
         double_vec_2d make_velocity_array(double_vec& lambdas,
-                size_t limit) const;
+                double mu) const;
         double_vec_2d make_velocity_array(double initial_angular,
-                double lambda, size_t limit) const;
+                double lambda, double mu) const;
 
-        double intrinsic_angular(double lambda) const;
-        int intrinsic_transversal(double lambda,
-                double intrinsic_angular_value, double* result);
+        double intrinsic_angular(double lambda, double R) const;
+        double intrinsic_transversal(double lambda,
+                double intrinsic_angular_value) const;
+        double angular_at_x(double initial_val, double R) const;
 
-        int angular_at_x(int i, double initial_val, double* result);
-        int transversal_at_x(int i, double initial_angular_val,
-                double* result);
+        void set_limit(int value)
+        { m_limit = value; }
+
+        void set_epsabs(double value)
+        { m_epsabs = value; }
+
+        void set_epsrel(double value)
+        { m_epsrel = value; }
 
 
     private:
         // function to be integrated
         double theta_dot(double theta, double eta, double angular) const;
 
+        // integration parameters
+        int m_limit;
+        double m_epsabs;
+        double m_epsrel;
+
         const int m_N;          // number of dominoes to be considered
         const int m_D;          // total number of dominoes
-        const double m_mu;      // coefficient of friction
+        // const double m_mu;      // coefficient of friction
         const double m_L;       // domino height
         const double m_h;       // domino width
         double m_phi;           // = arctan(h/L)
@@ -52,7 +64,8 @@ class DominoChain
 
         double _psi(double lambda) const;       // angle of impact
         double _xi(double psi) const;           // height of impact
-        double _R(double lambda) const;         // transmission of angular speed
+        double _R(double lambda,
+                double mu) const;               // transmission of angular speed
         double _theta_hat(double lambda) const; // final angle
         double _eta(double lambda) const;       // = (λ+h)\L
 

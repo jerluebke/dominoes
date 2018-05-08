@@ -80,7 +80,7 @@ class GslQuad
 };
 
 
-// TODO: move to test case for integrator (seprate file)
+// TODO: move to test case for integrator (seperate file)
 template<typename F, typename P>
 double doit(F func, tuple const& range, P params,
         double epsabs = 1.49e-8, double epsrel = 1.49e-8,

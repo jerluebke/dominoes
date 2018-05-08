@@ -3,6 +3,8 @@
 ### Questions
  *  Use valarray for operations  
  .. valarray.apply doesn't take capturing lambdas -> workaround?
+ .. valarray.apply only takes functions with one parameter. Is is possible to
+ pass member functions?  
  .. is it worth it? performance compared to vector
  *  Have GslQuad object as static member or initilize it newly each time a
     corresponding function is called?  
@@ -10,7 +12,10 @@
  too much wrapping?
  *  What about the destructor of `gsl_integration_workspace`
  [here](https://stackoverflow.com/a/24151084/9133910)? Why is it better than
- passing `gsl_workspace_free` as a functor?
+ passing `gsl_workspace_free` as a std::function object?
+ *  in each call of `make_velocity_array` GslQuad is newly instanciated with
+    the same wrapper for theta_dot for each signature. Does it make sense to
+    set it as a member variable?
 
 ---
 ### API

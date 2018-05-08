@@ -4,21 +4,28 @@
 
 const double G = 9.80665;
 
-//
-// Constructor
-//
+//////////////////
+// Constructor  //
+//////////////////
 
-DominoChain::DominoChain(domino d, int N, int D, double mu)
-    : m_L(d.height), m_h(d.width), m_N(N), m_D(D), m_mu(mu)
+// TODO: set GslQuad parameters (limit, epsabs, epsrel) as members (+setter)
+// TODO: make μ a function parameter to be passed each time (for fitting)
+// TODO: try with GslQuad instance as member variable
+// TODO: add vectors for V and φ' to cache the results from 
+//  `make_velocity_array` and make them accessable by `angular_at_x`, etc.
+DominoChain::DominoChain(domino d, int N, int D,
+        int limit = 100, double epsabs = 1.49e-8, double epsrel = 1.49e-8)
+    : m_L(d.height), m_h(d.width), m_N(N), m_D(D)
+    , m_limit(limit), m_epsabs(epsabs), m_epsrel(epsrel)
 {
     m_phi = std::atan2(m_h, m_L);
     m_omega = std::sqrt(3*G*std::cos(m_phi)/(2*m_L));
 }
 
 
-//
-// Public Methods
-//
+//////////////////////
+// Public Methods   //
+//////////////////////
 
 /*
  * Params:
@@ -33,7 +40,7 @@ DominoChain::DominoChain(domino d, int N, int D, double mu)
  *
  */
 double_vec_2d DominoChain::make_velocity_array(double_vec& lambdas,
-        size_t limit = 1000) const
+        double mu) const
 {
     double_vec_2d result;
     result.resize(2, double_vec());
@@ -43,11 +50,11 @@ double_vec_2d DominoChain::make_velocity_array(double_vec& lambdas,
     GslQuad integrator(
             [this](double theta, params p)
             { return theta_dot(theta, p.eta, p.angular); },
-            limit);
+            m_limit);
     for ( double lambda : lambdas )
     {
         p.eta = _eta(lambda);
-        p.angular = intrinsic_angular(lambda);
+        p.angular = intrinsic_angular(lambda, _R(lambda, mu));
         result[0].push_back(p.angular);
         // Transversal velocity V = (λ+h)/∫dθ/dθ'
         result[1].push_back(
@@ -59,7 +66,7 @@ double_vec_2d DominoChain::make_velocity_array(double_vec& lambdas,
 
 /*
  * Params:
- *  initial_angular :   the angular velocity with which the toppeling domino
+ *  initial_angular :   the angular velocity with which the toppling domino
  *      chain was initiated
  *  lambda          :   spacing of this domino chain
  *  limt            :   see above
@@ -72,13 +79,36 @@ double_vec_2d DominoChain::make_velocity_array(double_vec& lambdas,
  *
  */
 double_vec_2d DominoChain::make_velocity_array(double initial_angular,
-        double lambda, size_t limit = 1000) const
+        double lambda, double mu) const
 {
     double_vec_2d result;
     result.resize(3, double_vec());
 
+    double psi = _psi(lambda);
+    double R = _R(lambda, mu);
+    params p;
+    p.eta = _eta(lambda);
+    p.angular = initial_angular;
+    GslQuad integrator(
+            [this](double theta, params p)
+            { return theta_dot(theta, p.eta, p.angular); },
+            m_limit);
+
+    for (int i = 0; i < m_D; ++i)
+    {
+        result[0].push_back( i * (lambda + m_h) );
+        result[1].push_back(p.angular);
+        result[2].push_back(
+                (lambda + m_h) / integrator.integrate(p, 0, psi,
+                    m_epsabs, m_epsrel));
+        p.angular = angular_at_x(p.angular, R);
+    }
+
 }
 
+// TODO concerning the next four methods:
+//  return value from cache from `make_velocity_array` if available
+//  add `update` flag to force recalculation
 double DominoChain::intrinsic_angular(double lambda) const
 {
     return 1.0;
@@ -102,9 +132,9 @@ int DominoChain::transversal_at_x(int i, double initial_angular_val,
 }
 
 
-//
-// Private Methods
-//
+//////////////////////
+// Private Methods  //
+//////////////////////
 
 /*
  * function to be integrated
@@ -135,10 +165,10 @@ double DominoChain::_xi(double psi) const
     return m_L*std::cos(psi);
 }
 
-double DominoChain::_R(double lambda) const
+double DominoChain::_R(double lambda, double mu) const
 {
     double xi = this->_xi(this->_psi(lambda));
-    return 1 + ( xi + m_mu * lambda ) / ( xi - m_mu * m_h );
+    return 1 + ( xi + mu * lambda ) / ( xi - mu * m_h );
 }
 
 double DominoChain::_theta_hat(double lambda) const
