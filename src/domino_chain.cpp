@@ -1,6 +1,5 @@
 #include "../include/domino_chain.hpp"
 #include <cmath>
-#include <algorithm>
 
 const double G = 9.80665;
 
@@ -8,11 +7,8 @@ const double G = 9.80665;
 // Constructor  //
 //////////////////
 
-// TODO: set GslQuad parameters (limit, epsabs, epsrel) as members (+setter)
-// TODO: make μ a function parameter to be passed each time (for fitting)
 // TODO: try with GslQuad instance as member variable
-// TODO: add vectors for V and φ' to cache the results from 
-//  `make_velocity_array` and make them accessable by `angular_at_x`, etc.
+//  for that wrap theta_dot in a std::function and add it as a member
 DominoChain::DominoChain(domino d, int N, int D,
         int limit = 100, double epsabs = 1.49e-8, double epsrel = 1.49e-8)
     : m_L(d.height), m_h(d.width), m_N(N), m_D(D)
@@ -58,7 +54,8 @@ double_vec_2d DominoChain::make_velocity_array(double_vec& lambdas,
         result[0].push_back(p.angular);
         // Transversal velocity V = (λ+h)/∫dθ/dθ'
         result[1].push_back(
-                (lambda + m_h) / integrator.integrate(p, 0, _psi(lambda)));
+                (lambda + m_h) / integrator.integrate(p, 0, _psi(lambda),
+                    m_epsabs, m_epsrel));
     }
 
     return result;
@@ -84,8 +81,8 @@ double_vec_2d DominoChain::make_velocity_array(double initial_angular,
     double_vec_2d result;
     result.resize(3, double_vec());
 
-    double psi = _psi(lambda);
-    double R = _R(lambda, mu);
+    const double psi = _psi(lambda);
+    const double R = _R(lambda, mu);
     params p;
     p.eta = _eta(lambda);
     p.angular = initial_angular;
@@ -101,34 +98,35 @@ double_vec_2d DominoChain::make_velocity_array(double initial_angular,
         result[2].push_back(
                 (lambda + m_h) / integrator.integrate(p, 0, psi,
                     m_epsabs, m_epsrel));
-        p.angular = angular_at_x(p.angular, R);
+        p.angular = angular_next(p.angular, R);
     }
 
+    return result;
 }
 
-// TODO concerning the next four methods:
-//  return value from cache from `make_velocity_array` if available
-//  add `update` flag to force recalculation
-double DominoChain::intrinsic_angular(double lambda) const
+
+double DominoChain::intrinsic_angular(double eta, double theta_hat,
+        double R) const
 {
-    return 1.0;
+    double k_value = k(0.0, eta);
+    return m_omega * std::sqrt( ((k_value-1)/k_value)
+            * ( 2 * ( std::cos(m_phi) - std::cos(theta_hat - m_phi)) )
+            / (k_value - 1 - k_value * R * R) );
 }
 
-int DominoChain::intrinsic_transversal(double lambda,
-        double intrinsic_angular_value, double* result)
+// double DominoChain::intrinsic_transversal(double lambda,
+//         double intrinsic_angular_value) const
+// {
+// 
+// }
+
+double DominoChain::angular_next(double initial_val, double eta,
+        double theta_hat, double R) const
 {
-
-}
-
-int DominoChain::angular_at_x(int i, double initial_val, double* result)
-{
-
-}
-
-int DominoChain::transversal_at_x(int i, double initial_angular_val,
-        double* result)
-{
-
+    double k_value = k(0.0, eta);
+    double P_over_K_value = P_over_K(theta_hat, initial_val);
+    return initial_val * std::sqrt( ((k_value-1)/k_value)
+            * (1 - P_over_K_value/k_value) ) / R;
 }
 
 
@@ -154,6 +152,7 @@ double DominoChain::theta_dot(double theta, double eta,
             * (1 - P_over_K_value / k_value) );
     return 1 / theta_dot;
 }
+
 
 double DominoChain::_psi(double lambda) const
 {

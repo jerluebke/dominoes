@@ -30,10 +30,12 @@ class DominoChain
         double_vec_2d make_velocity_array(double initial_angular,
                 double lambda, double mu) const;
 
-        double intrinsic_angular(double lambda, double R) const;
-        double intrinsic_transversal(double lambda,
-                double intrinsic_angular_value) const;
-        double angular_at_x(double initial_val, double R) const;
+        double intrinsic_angular(double eta, double theta_hat,
+                double R) const;
+        // double intrinsic_transversal(double lambda,
+        //         double intrinsic_angular_value) const;
+        double angular_next(double initial_val, double eta,
+                double theta_hat, double R) const;
 
         void set_limit(int value)
         { m_limit = value; }
