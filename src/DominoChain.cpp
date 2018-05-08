@@ -10,7 +10,7 @@ const double G = 9.80665;
 // TODO: try with GslQuad instance as member variable
 //  for that wrap theta_dot in a std::function and add it as a member
 DominoChain::DominoChain(domino d, int N, int D,
-        int limit = 100, double epsabs = 1.49e-8, double epsrel = 1.49e-8)
+        int limit, double epsabs, double epsrel)
     : m_L(d.height), m_h(d.width), m_N(N), m_D(D)
     , m_limit(limit), m_epsabs(epsabs), m_epsrel(epsrel)
 {
@@ -43,10 +43,9 @@ double_vec_2d DominoChain::make_velocity_array(double_vec& lambdas,
 
     params p;
     // wrap theta_dot in lambda function
-    GslQuad integrator(
-            [this](double theta, params p)
-            { return theta_dot(theta, p.eta, p.angular); },
-            m_limit);
+    auto f = [this](double theta, params p)
+        { return theta_dot(theta, p.eta, p.angular); };
+    GslQuad<decltype(f)> integrator(f, m_limit);
     for ( double lambda : lambdas )
     {
         p.eta = _eta(lambda);
@@ -87,10 +86,11 @@ double_vec_2d DominoChain::make_velocity_array(double initial_angular,
     params p;
     p.eta = _eta(lambda);
     p.angular = initial_angular;
-    GslQuad integrator(
-            [this](double theta, params p)
-            { return theta_dot(theta, p.eta, p.angular); },
-            m_limit);
+    // TODO: see if clang takes the lambda directly as a parameter (without
+    // specifying the template type)
+    auto f = [this](double theta, params p)
+        { return theta_dot(theta, p.eta, p.angular); };
+    GslQuad<decltype(f)> integrator(f, m_limit);
 
     for (int i = 0; i < m_D; ++i)
     {
@@ -110,9 +110,10 @@ double DominoChain::intrinsic_angular(double eta, double theta_hat,
         double R) const
 {
     double k_value = k(0.0, eta);
-    return m_omega * std::sqrt( ((k_value-1)/k_value)
+    double return_val = m_omega * std::sqrt( ((k_value-1)/k_value)
             * ( 2 * ( std::cos(m_phi) - std::cos(theta_hat - m_phi)) )
-            / (k_value - 1 - k_value * R * R) );
+            / (k_value * R * R - k_value + 1) );
+	return return_val;
 }
 
 // double DominoChain::intrinsic_transversal(double lambda,
@@ -184,7 +185,7 @@ double DominoChain::_eta(double lambda) const
 
 double DominoChain::P_over_K(double theta, double initial_angular_val) const
 {
-    return 2 * m_omega * m_omega * ( std::cos(m_phi) - std::cos(theta-m_phi) )
+    return -2 * m_omega * m_omega * ( std::cos(m_phi) - std::cos(theta-m_phi) )
         / ( initial_angular_val * initial_angular_val );
 }
 

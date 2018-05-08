@@ -27,7 +27,7 @@ template<typename F>
 class GslQuad
 {
     public:
-        GslQuad(F func, size_t limit = 1000)
+        GslQuad(F func, size_t limit = 100)
             : m_func(func)
             , m_limit(limit)
             , m_workspace(gsl_integration_workspace_alloc(limit),
@@ -54,9 +54,12 @@ class GslQuad
             int status = gsl_integration_qags( gsl_f, min, max,
                     epsabs, epsrel, m_limit, m_workspace.get(),
                     &result, &error );
+            // size_t neval;
+            // int status = gsl_integration_qng( gsl_f, min, max,
+            //         epsabs, epsrel, &result, &error, &neval );
 
             if (status)
-                handle_error(status);
+                handle_error(status, result, error);
 
             return result;
         }
@@ -67,11 +70,12 @@ class GslQuad
         size_t m_limit;
         gsl_integration_workspace_cpp m_workspace;
 
-        void handle_error(int status) const
+        void handle_error(int status, double result, double error) const
         {
             std::stringstream msg;
             msg << "GSL ERROR: " << std::string(gsl_strerror(status));
 			msg << " (errno " << status << ")";
+			msg << " - result = " << result << ", error = " << error;
             throw std::runtime_error(msg.str());
         }
 

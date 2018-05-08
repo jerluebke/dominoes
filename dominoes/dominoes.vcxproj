@@ -121,16 +121,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\domino_chain.hpp" />
+    <ClInclude Include="..\include\DominoChain.hpp" />
+    <ClInclude Include="..\include\GslQuad.hpp" />
     <ClInclude Include="..\include\gsl_function_cpp.hpp" />
-    <ClInclude Include="..\include\integrator.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\domino_chain.cpp" />
-    <ClCompile Include="..\src\main.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">D:\source\gsl\build-dir</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\source\gsl\build-dir;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <ClCompile Include="..\src\DominoChain.cpp" />
+    <ClCompile Include="..\src\integrator_test.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\src\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

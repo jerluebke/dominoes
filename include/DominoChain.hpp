@@ -23,7 +23,9 @@ class DominoChain
 {
     public:
         DominoChain (domino d, int N, int D,
-                int limit, double epsabs, double epsrel);
+                int limit = 100,
+                double epsabs = 1.49e-8,
+                double epsrel = 1.49e-8);
 
         double_vec_2d make_velocity_array(double_vec& lambdas,
                 double mu) const;
