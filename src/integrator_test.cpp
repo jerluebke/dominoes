@@ -1,12 +1,23 @@
-#include "../include/integrator.hpp"
+#include "../include/GslQuad.hpp"
 #include <iostream>
 #include <cmath>
 
-// TODO: remove this
+typedef std::pair<double, double> tuple;
 typedef struct params_struct
 {
     double c;
 } params;
+
+
+template<typename F, typename P>
+double doit(F func, tuple const& range, P params,
+        double epsabs = 1.49e-8, double epsrel = 1.49e-8,
+        int limit = 100)
+{
+    return GslQuad<F>(func, limit).integrate(params,
+            range.first, range.second, epsabs, epsrel);
+}
+
 
 // TODO: write test program for DominoChain
 // TODO: rename files according to class names
@@ -37,4 +48,6 @@ int main()
     {
         std::cout << err.what() << std::endl;
     }
+
+    return 0;
 }

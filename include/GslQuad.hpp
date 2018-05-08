@@ -11,8 +11,6 @@
 typedef std::unique_ptr< gsl_integration_workspace,
         std::function<void(gsl_integration_workspace*)>
         > gsl_integration_workspace_cpp;
-// TODO: move to test case for integrator (seperate file)
-typedef std::pair<double, double> tuple;
 
 /*
  * wrapper for gsl_integration
@@ -79,13 +77,3 @@ class GslQuad
 
 };
 
-
-// TODO: move to test case for integrator (seperate file)
-template<typename F, typename P>
-double doit(F func, tuple const& range, P params,
-        double epsabs = 1.49e-8, double epsrel = 1.49e-8,
-        int limit = 100)
-{
-    return GslQuad<F>(func, limit).integrate(params,
-            range.first, range.second, epsabs, epsrel);
-}

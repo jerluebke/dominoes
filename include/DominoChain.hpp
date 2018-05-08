@@ -1,6 +1,6 @@
 #pragma once
 
-#include "integrator.hpp"
+#include "GslQuad.hpp"
 #include <vector>
 
 typedef std::vector<double> double_vec;

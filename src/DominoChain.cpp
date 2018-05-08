@@ -1,4 +1,4 @@
-#include "../include/domino_chain.hpp"
+#include "../include/DominoChain.hpp"
 #include <cmath>
 
 const double G = 9.80665;
@@ -50,7 +50,7 @@ double_vec_2d DominoChain::make_velocity_array(double_vec& lambdas,
     for ( double lambda : lambdas )
     {
         p.eta = _eta(lambda);
-        p.angular = intrinsic_angular(lambda, _R(lambda, mu));
+        p.angular = intrinsic_angular(p.eta, _theta_hat(lambda), _R(lambda, mu));
         result[0].push_back(p.angular);
         // Transversal velocity V = (λ+h)/∫dθ/dθ'
         result[1].push_back(
@@ -82,6 +82,7 @@ double_vec_2d DominoChain::make_velocity_array(double initial_angular,
     result.resize(3, double_vec());
 
     const double psi = _psi(lambda);
+    const double theta_hat = _theta_hat(lambda);
     const double R = _R(lambda, mu);
     params p;
     p.eta = _eta(lambda);
@@ -98,7 +99,7 @@ double_vec_2d DominoChain::make_velocity_array(double initial_angular,
         result[2].push_back(
                 (lambda + m_h) / integrator.integrate(p, 0, psi,
                     m_epsabs, m_epsrel));
-        p.angular = angular_next(p.angular, R);
+        p.angular = angular_next(p.angular, p.eta, theta_hat, R);
     }
 
     return result;
