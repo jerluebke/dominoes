@@ -39,6 +39,12 @@ class DominoChain
         double angular_next(double initial_val, double eta,
                 double theta_hat, double R) const;
 
+		void set_relevant(int value)
+		{ m_N = value; }
+
+		void set_dominoes(int value)
+		{ m_D = value; }
+
         void set_limit(int value)
         { m_limit = value; }
 
@@ -58,8 +64,8 @@ class DominoChain
         double m_epsabs;
         double m_epsrel;
 
-        const int m_N;          // number of dominoes to be considered
-        const int m_D;          // total number of dominoes
+        int m_N;          // number of dominoes to be considered
+        int m_D;          // total number of dominoes
         // const double m_mu;      // coefficient of friction
         const double m_L;       // domino height
         const double m_h;       // domino width

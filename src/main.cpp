@@ -35,16 +35,16 @@ int main()
     double_vec_2d velocity_at_x;
     try
     {
-        velocity_at_x = dc.make_velocity_array(2, 0.008, 0.2);
+		velocity_at_x = dc.make_velocity_array(3.1, 0.01, 0.2);
     }
     catch ( std::runtime_error &err )
     {
         std::cerr << err.what() << std::endl;
     }
-    assert ( velocity_at_x[0] == velocity_at_x[1] );
-    assert ( velocity_at_x[1] == velocity_at_x[2] );
+    assert ( velocity_at_x[0].size() == velocity_at_x[1].size() );
+    assert ( velocity_at_x[1].size() == velocity_at_x[2].size() );
 
-    std::cout << "phi_dot\tV\n";
+    std::cout << "x\tphi_dot\tV\n";
     for ( size_t i = 0; i < velocity_at_x[0].size(); ++i )
         std::cout << velocity_at_x[0][i] << "\t"
             << velocity_at_x[1][i] << "\t"
