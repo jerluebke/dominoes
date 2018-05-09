@@ -2,6 +2,22 @@
 #include <iostream>
 #include <assert.h>
 
+/* 
+ * TODO:
+ *  make DominoChain subclass of GslQuad
+ *  set m_func with theta_dot as lambda
+ *  remove set_limit (set at instanciation)
+ *
+ *  find out valid domain for parameters (hopefully from the mathematics ...)
+ *  handle input accordingly (raise exception)
+ *
+ *  compile and wrap in cython
+ *
+ *  testing and optimizing
+ *
+ *  add least-square-fitting (which algorithm is used by numpy/scipy?)
+ *
+ * */
 
 int main()
 {
@@ -10,10 +26,10 @@ int main()
     d.width = 0.004;    // m
 
     double_vec_2d intrinsic_velocities;
-    DominoChain dc (d, 100, 1000, 1000);
+    DominoChain dc (d, 10, 20, 100);
 
-    double_vec lambdas {0.004, 0.005, 0.006, 0.007, 0.008, 0.009,
-		0.01, 0.011};
+	double_vec lambdas{ 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009,
+		0.01, 0.011, 0.012, 0.013, 0.014, 0.015 };
 
     try
     {
@@ -23,11 +39,12 @@ int main()
     {
         std::cerr << err.what() << '\n';
     }
-    assert (intrinsic_velocities[0].size() == intrinsic_velocities[1].size());
+    // assert (intrinsic_velocities[0].size() == intrinsic_velocities[1].size());
 
-    std::cout << "phi_dot\tV\n";
+    std::cout << "l\tphi_dot\tV\n";
     for ( size_t i = 0; i < intrinsic_velocities[0].size(); ++i)
-        std::cout << intrinsic_velocities[0][i] << "\t"
+        std::cout << lambdas[i] << '\t'
+			<< intrinsic_velocities[0][i] << "\t"
             << intrinsic_velocities[1][i] << "\n";
 
     std::cout << "\n\n";
@@ -35,7 +52,7 @@ int main()
     double_vec_2d velocity_at_x;
     try
     {
-		velocity_at_x = dc.make_velocity_array(3.1, 0.01, 0.2);
+		velocity_at_x = dc.make_velocity_array(200, 0.01, 0.2);
     }
     catch ( std::runtime_error &err )
     {

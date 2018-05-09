@@ -1,14 +1,26 @@
 #include "../include/DominoChain.hpp"
 #include <cmath>
+#include <iostream>
+
+
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
+#ifdef DEBUG
+#define DPRINT(x) do { std::cerr << x << '\n'; } while (0)
+#else
+#define DPRINT(x)
+#endif
+
 
 const double G = 9.80665;
+
 
 //////////////////
 // Constructor  //
 //////////////////
 
-// TODO: try with GslQuad instance as member variable
-//  for that wrap theta_dot in a std::function and add it as a member
 DominoChain::DominoChain(domino d, int N, int D,
         int limit, double epsabs, double epsrel)
     : m_L(d.height), m_h(d.width), m_N(N), m_D(D)
@@ -44,7 +56,7 @@ double_vec_2d DominoChain::make_velocity_array(double_vec& lambdas,
     params p;
     // wrap theta_dot in lambda function
     auto f = [this](double theta, params p)
-        { return theta_dot(theta, p.eta, p.angular); };
+        { return theta_dot(theta, m_N, p.eta, p.angular); };
     GslQuad<decltype(f)> integrator(f, m_limit);
     for ( double lambda : lambdas )
     {
@@ -59,6 +71,7 @@ double_vec_2d DominoChain::make_velocity_array(double_vec& lambdas,
 
     return result;
 }
+
 
 /*
  * Params:
@@ -84,22 +97,24 @@ double_vec_2d DominoChain::make_velocity_array(double initial_angular,
     const double theta_hat = _theta_hat(lambda);
     const double R = _R(lambda, mu);
     params p;
+    p.index = 1;
     p.eta = _eta(lambda);
     p.angular = initial_angular;
     // TODO: see if clang takes the lambda directly as a parameter (without
     // specifying the template type)
     auto f = [this](double theta, params p)
-        { return theta_dot(theta, p.eta, p.angular); };
+        { return theta_dot(theta, p.index, p.eta, p.angular); };
     GslQuad<decltype(f)> integrator(f, m_limit);
 
-    for (int i = 0; i < m_D; ++i)
+    while ( p.index <= m_D )
     {
-        result[0].push_back( i * (lambda + m_h) );
+        result[0].push_back( p.index * (lambda + m_h) );
         result[1].push_back(p.angular);
         result[2].push_back(
                 (lambda + m_h) / integrator.integrate(p, 0, psi,
                     m_epsabs, m_epsrel));
-        p.angular = angular_next(p.angular, p.eta, theta_hat, R);
+        p.angular = angular_next(p.index, p.angular, p.eta, theta_hat, R);
+        ++p.index;
     }
 
     return result;
@@ -109,23 +124,18 @@ double_vec_2d DominoChain::make_velocity_array(double initial_angular,
 double DominoChain::intrinsic_angular(double eta, double theta_hat,
         double R) const
 {
-    double k_value = k(0.0, eta);
+    double k_value = k(m_N, 0.0, eta);
     double return_val = m_omega * std::sqrt( ((k_value-1)/k_value)
             * ( 2 * ( std::cos(m_phi) - std::cos(theta_hat - m_phi)) )
             / (k_value * R * R - k_value + 1) );
 	return return_val;
 }
 
-// double DominoChain::intrinsic_transversal(double lambda,
-//         double intrinsic_angular_value) const
-// {
-// 
-// }
 
-double DominoChain::angular_next(double initial_val, double eta,
+double DominoChain::angular_next(int index, double initial_val, double eta,
         double theta_hat, double R) const
 {
-    double k_value = k(0.0, eta);
+    double k_value = k(index, 0.0, eta);
     double P_over_K_value = P_over_K(theta_hat, initial_val);
     return initial_val * std::sqrt( ((k_value-1)/k_value)
             * (1 - P_over_K_value/k_value) ) / R;
@@ -144,14 +154,15 @@ double DominoChain::angular_next(double initial_val, double eta,
  * lambda) with the parameters eta and angular being passed as a params struct
  *
  */
-double DominoChain::theta_dot(double theta, double eta,
+double DominoChain::theta_dot(double theta, int index, double eta,
         double angular) const
 {
-    double k_value = k(theta, eta);
+    double k_value = k(index, theta, eta);
     double P_over_K_value = P_over_K(theta, angular);
     double theta_dot = angular * std::sqrt(
             (k_value / (k_value - 1))
             * (1 - P_over_K_value / k_value) );
+    // DPRINT( theta << '\t' << 1/theta_dot );
     return 1 / theta_dot;
 }
 
@@ -168,7 +179,7 @@ double DominoChain::_xi(double psi) const
 
 double DominoChain::_R(double lambda, double mu) const
 {
-    double xi = this->_xi(this->_psi(lambda));
+    double xi = _xi(_psi(lambda));
     return 1 + ( xi + mu * lambda ) / ( xi - mu * m_h );
 }
 
@@ -196,12 +207,13 @@ double DominoChain::k(int piece_index, double theta_initial, double eta) const
     double theta_dot_rel_value;
     double theta_i;
     int pieces_to_consider = (piece_index < m_N) ? piece_index : m_N;
+    // DPRINT("Pieces to consider: " << pieces_to_consider);
 
     for (int j = 0; j < pieces_to_consider; ++j)
     {
         theta_i = theta_initial;
         theta_dot_rel_prod = 1.0;
-        for (int i = 0; i < j; ++i)
+        for (int i = 0; i <= j; ++i)
         {
             // θ'_i+1 / θ'_i
             theta_dot_rel_value = theta_dot_rel(theta_i, eta);
@@ -212,6 +224,7 @@ double DominoChain::k(int piece_index, double theta_initial, double eta) const
         theta_dot_rel_sum += theta_dot_rel_prod;
     }
 
+    // DPRINT("k = " << (1+theta_dot_rel_sum));
     return 1 + theta_dot_rel_sum;
 }
 

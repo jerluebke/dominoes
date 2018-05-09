@@ -14,6 +14,7 @@ typedef struct domino_struct
 
 typedef struct params_struct
 {
+    int index;
     double eta;
     double angular;
 } params;
@@ -36,7 +37,7 @@ class DominoChain
                 double R) const;
         // double intrinsic_transversal(double lambda,
         //         double intrinsic_angular_value) const;
-        double angular_next(double initial_val, double eta,
+        double angular_next(int index, double initial_val, double eta,
                 double theta_hat, double R) const;
 
 		void set_relevant(int value)
@@ -57,7 +58,8 @@ class DominoChain
 
     private:
         // function to be integrated
-        double theta_dot(double theta, double eta, double angular) const;
+        double theta_dot(double theta, int index, double eta,
+                double angular) const;
 
         // integration parameters
         int m_limit;
