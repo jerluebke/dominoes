@@ -80,7 +80,7 @@ class DominoChain
         double _eta(double lambda) const;       // = (λ+h)\L
 
         double P_over_K(double theta, double intitial_angular_speed) const;
-        double k(double theta_initial, double eta) const;
+        double k(int piece_index, double theta_initial, double eta) const;
         double theta_dot_rel(double theta, double eta) const;
 
 };

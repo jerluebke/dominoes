@@ -189,14 +189,15 @@ double DominoChain::P_over_K(double theta, double initial_angular_val) const
         / ( initial_angular_val * initial_angular_val );
 }
 
-double DominoChain::k(double theta_initial, double eta) const
+double DominoChain::k(int piece_index, double theta_initial, double eta) const
 {
     double theta_dot_rel_sum = 0.0;
     double theta_dot_rel_prod;
     double theta_dot_rel_value;
     double theta_i;
+    int pieces_to_consider = (piece_index < m_N) ? piece_index : m_N;
 
-    for (int j = 0; j < m_N; ++j)
+    for (int j = 0; j < pieces_to_consider; ++j)
     {
         theta_i = theta_initial;
         theta_dot_rel_prod = 1.0;

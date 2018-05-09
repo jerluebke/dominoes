@@ -10,7 +10,7 @@ int main()
     d.width = 0.004;    // m
 
     double_vec_2d intrinsic_velocities;
-    DominoChain dc (d, 10, 100, 1000);
+    DominoChain dc (d, 100, 1000, 1000);
 
     double_vec lambdas {0.004, 0.005, 0.006, 0.007, 0.008, 0.009,
 		0.01, 0.011};
@@ -21,7 +21,7 @@ int main()
     }
     catch ( std::runtime_error &err)
     {
-        std::cerr << err.what() << std::endl;
+        std::cerr << err.what() << '\n';
     }
     assert (intrinsic_velocities[0].size() == intrinsic_velocities[1].size());
 
@@ -30,7 +30,7 @@ int main()
         std::cout << intrinsic_velocities[0][i] << "\t"
             << intrinsic_velocities[1][i] << "\n";
 
-    std::cout << "\n\n" << std::endl;
+    std::cout << "\n\n";
 
     double_vec_2d velocity_at_x;
     try
@@ -39,7 +39,7 @@ int main()
     }
     catch ( std::runtime_error &err )
     {
-        std::cerr << err.what() << std::endl;
+        std::cerr << err.what() << '\n';
     }
     assert ( velocity_at_x[0].size() == velocity_at_x[1].size() );
     assert ( velocity_at_x[1].size() == velocity_at_x[2].size() );
