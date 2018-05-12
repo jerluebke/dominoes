@@ -19,13 +19,13 @@ typedef struct result
     int status;
     std::string errormsg;
 
-    std::string print()
+    std::string str()
     {
         std::stringstream output;
-        output << "{ result = " << integration_result << ",\n"
-            << "error = " << error << ",\n"
-            << "gsl errno: " << status << ",\n"
-            << "error msg: " << errormsg << " }\n"
+        output << "{ \"result\" : " << integration_result << ",\n"
+            << "\"error\" : " << error << ",\n"
+            << "\"gsl_errno\" : " << status << ",\n"
+            << "\"error_msg\" : \"" << errormsg << "\" }\n"
             << '\n';
         return output.str();
     }
