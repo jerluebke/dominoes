@@ -1,5 +1,4 @@
 #include "../include/GslQuad.hpp"
-#include <iostream>
 #include <cmath>
 
 typedef std::pair<double, double> tuple;

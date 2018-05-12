@@ -11,9 +11,9 @@ Theoretical part of the SOWAS project, summer term 2018
 ---
 **How to compile:**
 
-    clang++ .\src\main.cpp .\src\DominoChain.cpp -Wall -Wextra -fexceptions
-    -DHAVE_INLINE -isystem <path\to\gsl\> -I .\include\ -L <path\to\gsl\libs>
-    -l gsl -gslcblas -o main.exe
+    clang++ .\src\main.cpp .\src\DominoChain.cpp -Wall -Wextra -DHAVE_INLINE
+    -isystem <path\to\gsl\> -I .\include\ -L <path\to\gsl\libs> -l gsl
+    -l gslcblas -o main.exe
 
 ---
 *Instructions to be added*

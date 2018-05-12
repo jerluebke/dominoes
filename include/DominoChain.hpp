@@ -2,7 +2,7 @@
 
 #include "GslQuad.hpp"
 #include <vector>
-#include <functional>
+
 
 typedef std::vector<double> double_vec;
 typedef std::vector< std::vector<double> > double_vec_2d;
@@ -35,13 +35,15 @@ class DominoChain
 
         double_vec_2d make_velocity_array(
                 const double_vec& lambdas,
-                const double mu ) const;
+                const double mu,
+                const bool full_output = false );
 
         double_vec_2d make_velocity_array(
                 const double initial_angular,
                 const double lambda,
                 const int number_of_pieces,
-                const double mu ) const;
+                const double mu,
+                const bool full_output = false );
 
         double intrinsic_angular(
                 const double eta,
@@ -49,10 +51,11 @@ class DominoChain
                 const double R ) const;
 
         double intrinsic_transversal(
-                const GslQuad<double_func>& integrator,
+                GslQuad<double_func>& integrator,
                 const params& p,
                 const double lambda,
-                const double psi ) const;
+                const double psi,
+                const bool full_output = false );
 
         double angular_next(
                 const int index,
@@ -60,6 +63,10 @@ class DominoChain
                 const double eta,
                 const double theta_hat,
                 const double R ) const;
+
+        // throws `out_of_range` if index is out of bounds!
+        result get_full_output( const size_t index )
+        { return _full_output_vec.at(index); }
 
 		void set_pieces_to_be_considered( const int value )
 		{ m_N = value; }
@@ -74,6 +81,9 @@ class DominoChain
                 const double angular ) const;
 
         const double_func theta_dot_wrapper;
+
+        // full output of integration
+        std::vector<result> _full_output_vec;
 
         // integrator params
         const size_t m_limit;
