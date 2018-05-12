@@ -19,8 +19,6 @@ double doit(F func, tuple const& range, P params,
 }
 
 
-// TODO: write test program for DominoChain
-// TODO: rename files according to class names
 int main()
 {
     // auto f = [](double x)->double{return -(x*x)+1;};
@@ -32,6 +30,7 @@ int main()
     auto f = [](double x, params p){return -(x*x)+p.c;};
     auto g = [](double x, params p){return std::exp(-(x*x)/p.c);};
     GslQuad<decltype(g)> integrator(g, 100);
+    auto h = [](double x, params p){return 1/std::pow(x, p.c);};
     try
     {
     std::cout
@@ -42,6 +41,10 @@ int main()
         << integrator.integrate<params>(p, -1, 1) << '\n'
         << "\\int_-1^1 \\exp(-x^2/5) dx = "
         << integrator.integrate<params>(q, -1, 1) << '\n'
+        << "\\int_0^1 dx/x = "
+        << doit(h, {0, 1}, p) << '\n'
+        << "\\int_{-1}^1 sin^2(x)/x^2 dx = "
+        << doit([](double x, params p){return std::sin(x)*std::sin(x)/(x*x);}, {-1, 1}, p) << '\n'
         << std::endl;
     }
     catch (std::runtime_error& err)
