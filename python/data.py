@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 
 # read data
-df_intrinsic = pd.read_csv('./intrinsic_velocities.csv', '\t')
-df_initial = pd.read_csv('./velocities_at_x.csv', '\t')
+df_intrinsic = pd.read_csv('./intrinsic_velocities.tsv', '\t')
+df_initial = pd.read_csv('./velocities_at_x.tsv', '\t')
 
 
 # do plotting
