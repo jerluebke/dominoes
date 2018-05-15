@@ -140,7 +140,7 @@ double_vec_2d DominoChain::make_velocity_array(
 
 
 double DominoChain::intrinsic_angular(
-        const double eta, 
+        const double eta,
         const double theta_hat,
         const double R) const
 {
@@ -162,7 +162,7 @@ double DominoChain::intrinsic_transversal(
         const double psi,
         const bool full_output )
 {
-    double result = ( lambda + m_h ) / integrator.integrate( p, 0, psi, 
+    double result = ( lambda + m_h ) / integrator.integrate( p, 0, psi,
             m_epsabs, m_epsrel, full_output );
 
     if ( full_output )
@@ -173,10 +173,10 @@ double DominoChain::intrinsic_transversal(
 
 
 double DominoChain::angular_next(
-        int index, 
-        double initial_val, 
+        int index,
+        double initial_val,
         double eta,
-        double theta_hat, 
+        double theta_hat,
         double R ) const
 {
     double k_value = k( index, 0.0, eta );
@@ -206,7 +206,6 @@ double DominoChain::theta_dot( const double theta, const int index,
     double theta_dot = angular * std::sqrt(
             (k_value / (k_value - 1))
             * (1 - P_over_K_value / k_value) );
-    // DPRINT( theta << '\t' << 1/theta_dot );
     return 1 / theta_dot;
 }
 
@@ -268,7 +267,6 @@ double DominoChain::k( const int piece_index, const double theta_initial,
     double theta_dot_rel_value;
     double theta_i;
     int pieces_to_consider = ( piece_index < m_N ) ? piece_index+1 : m_N;
-    // DPRINT("Pieces to consider: " << pieces_to_consider);
 
     for ( int j = 0; j < pieces_to_consider; ++j )
     {
@@ -285,7 +283,6 @@ double DominoChain::k( const int piece_index, const double theta_initial,
         theta_dot_rel_sum += theta_dot_rel_prod;
     }
 
-    // DPRINT("k = " << (1+theta_dot_rel_sum));
     return 1 + theta_dot_rel_sum;
 }
 
