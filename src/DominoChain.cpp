@@ -139,6 +139,45 @@ double_vec_2d DominoChain::make_velocity_array(
 }
 
 
+//////////////////////
+// Private Methods  //
+//////////////////////
+
+/*
+ * function to be integrated
+ * return reciprocal of θ'
+ *
+ * to prepare this methode for GslQuad, wrap it in some functor object (or
+ * lambda) with the parameters eta and angular being passed as a params struct
+ *
+ */
+double DominoChain::theta_dot( const double theta, const int index,
+        const double eta, const double angular ) const
+{
+    double k_value = k( index, theta, eta );
+    double P_over_K_value = P_over_K( theta, angular );
+    double theta_dot = angular * std::sqrt(
+            (k_value / (k_value - 1))
+            * (1 - P_over_K_value / k_value) );
+    return 1 / theta_dot;
+}
+
+
+// Static Members
+
+double DominoChain::_phi( const double L, const double h )
+{
+    return std::atan2( h, L );
+}
+
+double DominoChain::_omega( const double L, const double phi )
+{
+    return std::sqrt( 3 * G * std::cos(phi) / (2 * L) );
+}
+
+
+// Non-static Members
+
 double DominoChain::intrinsic_angular(
         const double eta,
         const double theta_hat,
@@ -186,72 +225,6 @@ double DominoChain::angular_next(
 }
 
 
-//////////////////////
-// Private Methods  //
-//////////////////////
-
-/*
- * function to be integrated
- * return reciprocal of θ'
- *
- * to prepare this methode for GslQuad, wrap it in some functor object (or
- * lambda) with the parameters eta and angular being passed as a params struct
- *
- */
-double DominoChain::theta_dot( const double theta, const int index,
-        const double eta, const double angular ) const
-{
-    double k_value = k( index, theta, eta );
-    double P_over_K_value = P_over_K( theta, angular );
-    double theta_dot = angular * std::sqrt(
-            (k_value / (k_value - 1))
-            * (1 - P_over_K_value / k_value) );
-    return 1 / theta_dot;
-}
-
-
-// Static Members
-
-double DominoChain::_phi( const double L, const double h )
-{
-    return std::atan2( h, L );
-}
-
-double DominoChain::_omega( const double L, const double phi )
-{
-    return std::sqrt( 3 * G * std::cos(phi) / (2 * L) );
-}
-
-
-// Non-static Members
-
-double DominoChain::_psi( const double lambda ) const
-{
-    return std::asin( lambda/m_L );
-}
-
-double DominoChain::_xi( const double psi ) const
-{
-    return m_L*std::cos( psi );
-}
-
-double DominoChain::_R( const double lambda, const double mu ) const
-{
-    double xi = _xi( _psi(lambda) );
-    return 1 + ( xi + mu * lambda ) / ( xi - mu * m_h );
-}
-
-double DominoChain::_theta_hat( const double lambda ) const
-{
-    return std::acos( m_h / (m_h + lambda) );
-}
-
-double DominoChain::_eta( const double lambda ) const
-{
-    return ( lambda + m_h ) / m_L;
-}
-
-
 double DominoChain::P_over_K( const double theta,
         const double initial_angular_val ) const
 {
@@ -293,5 +266,32 @@ double DominoChain::theta_dot_rel( const double theta,
     // θ_i+1 = arcsin(η * cos(θ_i) - h/L) + θ_i
     return 1 - eta * std::sin( theta )
         / std::cos( std::asin( eta*std::cos(theta) - m_h/m_L ) );
+}
+
+
+double DominoChain::_psi( const double lambda ) const
+{
+    return std::asin( lambda/m_L );
+}
+
+double DominoChain::_xi( const double psi ) const
+{
+    return m_L*std::cos( psi );
+}
+
+double DominoChain::_R( const double lambda, const double mu ) const
+{
+    double xi = _xi( _psi(lambda) );
+    return 1 + ( xi + mu * lambda ) / ( xi - mu * m_h );
+}
+
+double DominoChain::_theta_hat( const double lambda ) const
+{
+    return std::acos( m_h / (m_h + lambda) );
+}
+
+double DominoChain::_eta( const double lambda ) const
+{
+    return ( lambda + m_h ) / m_L;
 }
 

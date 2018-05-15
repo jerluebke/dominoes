@@ -45,25 +45,6 @@ class DominoChain
                 const double mu,
                 const bool full_output = false );
 
-        double intrinsic_angular(
-                const double eta,
-                const double theta_hat,
-                const double R ) const;
-
-        double intrinsic_transversal(
-                GslQuad<double_func>& integrator,
-                const params& p,
-                const double lambda,
-                const double psi,
-                const bool full_output = false );
-
-        double angular_next(
-                const int index,
-                const double initial_val,
-                const double eta,
-                const double theta_hat,
-                const double R ) const;
-
         // throws `out_of_range` if index is out of bounds!
         result get_full_output( const size_t index )
         { return _full_output_vec.at(index); }
@@ -101,13 +82,25 @@ class DominoChain
         static double _phi( const double L, const double h );
         static double _omega( const double L, const double phi );
 
-        // helper methods
-        double _psi( const double lambda ) const;   // angle of impact
-        double _xi( const double psi ) const;       // height of impact
-        double _R( const double lambda,
-                const double mu ) const;            // transmission of angular speed
-        double _theta_hat( const double lambda ) const;   // final angle
-        double _eta( const double lambda ) const;   // = (λ+h)/L
+        // integration helper methods
+        double intrinsic_angular(
+                const double eta,
+                const double theta_hat,
+                const double R ) const;
+
+        double intrinsic_transversal(
+                GslQuad<double_func>& integrator,
+                const params& p,
+                const double lambda,
+                const double psi,
+                const bool full_output = false );
+
+        double angular_next(
+                const int index,
+                const double initial_val,
+                const double eta,
+                const double theta_hat,
+                const double R ) const;
 
         double P_over_K(
                 const double theta,
@@ -119,5 +112,13 @@ class DominoChain
         double theta_dot_rel(
                 const double theta,
                 const double eta ) const;
+
+        // instance helper methods
+        double _psi( const double lambda ) const;   // angle of impact
+        double _xi( const double psi ) const;       // height of impact
+        double _R( const double lambda,
+                const double mu ) const;            // transmission of angular speed
+        double _theta_hat( const double lambda ) const;   // final angle
+        double _eta( const double lambda ) const;   // = (λ+h)/L
 
 };
