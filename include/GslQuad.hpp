@@ -101,7 +101,7 @@ class GslQuad
 
             if ( full_output )
             {
-                result_struct.integration_result = result;
+                // result_struct.integration_result = result;
                 result_struct.error = error;
                 result_struct.status = status;
                 result_struct.errormsg = std::string( gsl_strerror(status) );
