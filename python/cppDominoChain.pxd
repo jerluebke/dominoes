@@ -24,24 +24,24 @@ cdef extern from "DominoChain.hpp":
                     const double,
                     const double) nogil
 
-       double_vec_2d make_velocity_array(const double_vec&,
+        double_vec_2d make_velocity_array(const double_vec&,
                                          const double,
                                          const bool) nogil
 
-       double_vec_2d make_velocity_array(const double,
+        double_vec_2d make_velocity_array(const double,
                                          const double,
                                          const int,
                                          const double,
                                          const bool) nogil
 
-       double intrinsic_angular(const double,
+        double intrinsic_angular(const double,
                                 const double) nogil
 
-       double intrinsic_transversal(const double,
+        double intrinsic_transversal(const double,
                                     const double,
                                     const bool) nogil
 
-       result_vec& get_full_output(void) nogil
+        result_vec& get_full_output() nogil
 
-       void set_pieces_to_be_considered(const int) nogil
+        void set_pieces_to_be_considered(const int) nogil
 
