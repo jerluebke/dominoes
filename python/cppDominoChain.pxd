@@ -5,6 +5,7 @@ from libcpp.vector cimport vector
 
 ctypedef vector[double] double_vec
 ctypedef vector[vector[double]] double_vec_2d
+ctypedef vector[result] result_vec
 
 
 cdef extern from "GslQuad.hpp":
@@ -33,7 +34,14 @@ cdef extern from "DominoChain.hpp":
                                          const double,
                                          const bool) nogil
 
-       result get_full_output(const int) nogil except +
+       double intrinsic_angular(const double,
+                                const double) nogil
+
+       double intrinsic_transversal(const double,
+                                    const double,
+                                    const bool) nogil
+
+       result_vec& get_full_output(void) nogil
 
        void set_pieces_to_be_considered(const int) nogil
 

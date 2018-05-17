@@ -14,7 +14,7 @@ typedef std::unique_ptr< gsl_integration_workspace,
 
 typedef struct result
 {
-    double integration_result;
+    // double integration_result;
     double error;
     int status;
     std::string errormsg;
@@ -22,7 +22,8 @@ typedef struct result
     std::string str()
     {
         std::stringstream output;
-        output << "{ \"result\" : " << integration_result << ",\n"
+        output << "{ "
+            // << "\"result\" : " << integration_result << ",\n"
             << "\"error\" : " << error << ",\n"
             << "\"gsl_errno\" : " << status << ",\n"
             << "\"error_msg\" : \"" << errormsg << "\" }\n"

@@ -64,7 +64,7 @@ double_vec_2d DominoChain::make_velocity_array(
         const bool full_output )
 {
     if ( full_output )
-        _full_output_vec.resize( 0 );
+        _full_output_vec.clear();
 
     double_vec_2d result;
     result.resize( 2, double_vec() );
@@ -80,7 +80,7 @@ double_vec_2d DominoChain::make_velocity_array(
                 p.eta, _theta_hat(lambda), _R(lambda, mu) );
         result[0].push_back( p.angular );
         result[1].push_back(
-                intrinsic_transversal( integrator, p, lambda, _psi(lambda),
+                transversal( integrator, p, lambda, _psi(lambda),
                     full_output ));
     }
 
@@ -110,10 +110,10 @@ double_vec_2d DominoChain::make_velocity_array(
         const bool full_output )
 {
     if ( full_output )
-        _full_output_vec.resize( 0 );
+        _full_output_vec.clear();
 
     double_vec_2d result;
-    result.resize(3, double_vec());
+    result.resize( 3, double_vec() );
 
     const double psi = _psi(lambda);
     const double theta_hat = _theta_hat(lambda);
@@ -129,13 +129,47 @@ double_vec_2d DominoChain::make_velocity_array(
         result[0].push_back( p.index * (lambda + m_h) );
         result[1].push_back( p.angular );
         result[2].push_back(
-                intrinsic_transversal( integrator, p, lambda, psi,
+                transversal( integrator, p, lambda, psi,
                     full_output ));
         p.angular = angular_next( p.index, p.angular, p.eta, theta_hat, R );
         ++p.index;
     }
 
     return result;
+}
+
+
+double DominoChain::intrinsic_angular(
+        const double lambda,
+        const double mu ) const
+{
+    return intrinsic_angular(
+            _eta( lambda ),
+            _theta_hat( lambda ),
+            _R( lambda, mu ));
+}
+
+
+double DominoChain::intrinsic_transversal(
+        const double lambda,
+        const double angular,
+        const bool full_output )
+{
+    params p;
+    p.index = m_N;
+    p.eta = _eta( lambda );
+    p.angular = angular;
+    GslQuad<double_func> integrator( theta_dot_wrapper, m_limit );
+    double time = integrator.integrate(
+            p, 0, _psi( lambda ), m_epsabs, m_epsrel, full_output );
+
+    if ( full_output )
+    {
+        _full_output_vec.clear();
+        _full_output_vec.push_back( integrator.get_result() );
+    }
+
+    return ( lambda + m_h ) / time;
 }
 
 
@@ -194,7 +228,7 @@ double DominoChain::intrinsic_angular(
 /*
  * Transversal velocity V = (λ+h)/∫dθ/dθ'
  */
-double DominoChain::intrinsic_transversal(
+double DominoChain::transversal(
         GslQuad<double_func>& integrator,
         const params& p,
         const double lambda,

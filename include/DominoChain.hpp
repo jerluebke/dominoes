@@ -45,9 +45,24 @@ class DominoChain
                 const double mu,
                 const bool full_output = false );
 
+        // for fitting μ
+        // TODO:
+        // add methods to return angular and transversal velocity at position x
+        double intrinsic_angular(
+                const double lambda,
+                const double mu ) const;
+
+        double intrinsic_transversal(
+                const double lambda,
+                const double angular,
+                const bool full_output = false );
+
         // throws `out_of_range` if index is out of bounds!
-        result get_full_output( const size_t index )
+        result get_full_output( const size_t index ) const
         { return _full_output_vec.at(index); }
+
+        std::vector<result>& get_full_output( void )
+        { return _full_output_vec; }
 
 		void set_pieces_to_be_considered( const int value )
 		{ m_N = value; }
@@ -88,7 +103,7 @@ class DominoChain
                 const double theta_hat,
                 const double R ) const;
 
-        double intrinsic_transversal(
+        double transversal(
                 GslQuad<double_func>& integrator,
                 const params& p,
                 const double lambda,
