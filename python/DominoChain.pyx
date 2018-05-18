@@ -1,6 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-TODO: docstring
+Cython Wrapper for c++ class `DominoChain` as part of this years SOWAS project
+at Ruhr-Uni Bochum
+
+This module contains:
+    class `domino_tuple` (named tuple class from pythons `collections` module)
+    class `PyDominoChain`
+
+Usage instructions see `PyDominoChain` docstring
+
+---
+
+author: Jeremiah Lübke
+email: jeremiah.luebke@ruhr-uni-bochum.de
+date: May 2018
 """
 
 from cppDominoChain cimport *
@@ -10,32 +23,64 @@ import numpy as np
 cimport numpy as np
 
 
-#  ctypedef np.ndarray[ double, ndim=1, mode="c" ] 1d_array_f
-#  ctypedef np.ndarray[ double, ndim=2, mode="c" ] 2d_array_f
-#  ctypedef np.ndarray[ str, ndim=1, mode="c" ] 1d_array_s
-
 domino_tuple = namedtuple( "Domino", "height width" )
 
 
 cdef class PyDominoChain:
     """
-    TODO:
-        finish and test implementation
-        add usage instructions...
+    PyDominoChain(domino_tuple, N=10, limit=10,
+                  epsabs=1.49e-8, epsrel=1.49e-8)
+
+    A PyDominoChain-Instance holds various methods describing the dynamics of a
+    chain of dominoes.
+
+    Parameters
+    ----------
+    domino_tuple : an arbitrary object representing a domino piece, which
+        needs provides a `height` and a `width` attribute.
+        This module holds a `domino_tuple` class as a tempalte for this task
+    N : int, number of pieces to be considered when doing the calculations.
+        This attribute can also be set with `self.set_pieces_to_be_considered`
+    limit : size of integration workspace in terms of double precision
+        intervals _(can be ignored)_
+    epsabs, epsrel : absolute and relative error tolerance for integration
+        algorithm _(can be ignored)_
+
+    Methods
+    -------
+        (description see in docstring for each method)
+    intrinsic_velocities
+    velocities_by_position
+    intrinsic_angular
+    intrinsic_transversal
+    set_pieces_to_be_considered
+
+    Attributes
+    ----------
+    result_dict : dict holding additional information about the integration
+        process
+
+    Examples
+    --------
+        (see attached jupyter notebook)
+
     """
     # this-pointer
     cdef DominoChain* cpp_dc
 
     _result_dict = { "err"      : np.zeros(0, np.float64),
                      "status"   : np.zeros(0, np.float64),
-                     "msg"      : np.zeros(0, str) }
+                     "msg"      : [] }
 
-    def __init__( self,
-                    d_tuple,
-                    int N = 10,
-                    int limit = 100,
-                    double epsabs = 1.49e-8,
-                    double epsrel = 1.49e-8 ):
+    def __init__(self,
+                 d_tuple,
+                 int N = 10,
+                 int limit = 100,
+                 double epsabs = 1.49e-8,
+                 double epsrel = 1.49e-8):
+        """
+        Initialize self. Full signature see class docstring
+        """
         cdef domino d_struct
         try:
             d_struct.height = d_tuple.height
@@ -46,17 +91,36 @@ cdef class PyDominoChain:
         self.cpp_dc = new DominoChain( d_struct, N, limit, epsabs, epsrel )
 
 
-    def __dealloc__( self ):
+    def __dealloc__(self):
+        """
+        free memory of pointer to cpp-instance
+        """
         del self.cpp_dc
 
 
-    cpdef np.ndarray intrinsic_velocities( self,
+    cpdef np.ndarray intrinsic_velocities(self,
                                           np.ndarray np_lambdas,
                                           double mu,
-                                          bool full_output = False ):
+                                          bool full_output = False):
         """
-        TODO
+        intrinsic_velocities(lambdas, mu, full_output=False)
+
+        Parameters
+        ----------
+        lambdas : 1-dim array with different spacings for which to calculate
+            the intrinsic velocities for
+        mu : coefficient of friction
+        full_output : whether to retreive additional information from
+            integrator
+
+        Returns
+        -------
+        2-dim array with shape (2, len(lambdas)) holding the intrinsic angular
+            and transversal velocities
         """
+        if np_lambdas.ndim != 1:
+            raise ValueError("The provided array must be 1-dimensional")
+
         cdef double_vec cpp_lambdas = np_lambdas
         cdef double_vec_2d cpp_result = self.cpp_dc.make_velocity_array(
             cpp_lambdas, mu, full_output )
@@ -68,14 +132,30 @@ cdef class PyDominoChain:
         return np_result
 
 
-    cpdef np.ndarray velocities_by_position( self,
+    cpdef np.ndarray velocities_by_position(self,
                                             double initial_angular,
                                             double spacing,
                                             int number_of_pieces,
                                             double mu,
-                                            bool full_output ):
+                                            bool full_output = False):
         """
-        TODO
+        velocities_by_position(initial_angular, spacing, number_of_pieces,
+            mu, full_output=False)
+
+        Parameters
+        ----------
+        initial_angular : angular veloclity with which the toppeling of the
+            chain was initiated
+        spacing : distance between to pieces
+        number_of_pieces : number of pieces in the domino chain
+        mu : coefficient of friction
+        full_output : whether to retreive additional information from
+            integrator
+
+        Returns
+        -------
+        2-dim array with shape (3, number_of_pieces) holding the x coordinate,
+            the angular and the transversal velocity by position
         """
         cdef double_vec_2d cpp_result = self.cpp_dc.make_velocity_array(
             initial_angular, spacing, number_of_pieces, mu, full_output )
@@ -87,25 +167,45 @@ cdef class PyDominoChain:
         return np_result
 
 
-    cpdef double intrinsic_angular( self,
+    cpdef double intrinsic_angular(self,
                                    double spacing,
-                                   double mu ):
+                                   double mu):
         """
-        TODO
+        intrinsic_angular(spacing, mu)
+
+        Parameters
+        ----------
+        spacing : distance bewteen two pieces
+        mu : coefficient of friction
+
+        Returns
+        -------
+        float64, intrinsic angular velocity for given configuration
         """
         return self.cpp_dc.intrinsic_angular( spacing, mu )
 
 
-    cpdef double intrinsic_transversal( self,
+    cpdef double intrinsic_transversal(self,
                                        double spacing,
                                        double angular,
-                                       bool full_output ):
+                                       bool full_output = False):
         """
-        TODO
+        intrinsic_transversal(spacing, angular, full_output)
+
+        Parameters
+        ----------
+        spacing : distance between two pieces
+        angular : intrinsic angular velocity
+        full_output : whether to retreive additional information from
+            integrator
+
+        Returns
+        -------
+        float64, intrinsic transversal velocity for given configuration
         """
-        cdef result = self.cpp_dc.intrinsic_transversal( spacing,
-                                                         angular,
-                                                         full_output)
+        cdef double result = self.cpp_dc.intrinsic_transversal(spacing,
+                                                               angular,
+                                                               full_output)
         if full_output:
             self._set_result_dict( self.cpp_dc.get_full_output() )
 
@@ -114,30 +214,72 @@ cdef class PyDominoChain:
 
     def set_pieces_to_be_considered(self, int value):
         """
-        TODO
+        set_pieces_to_be_considered(value)
+
+        Parameters
+        ----------
+        value : new number of pieces to be considered while performing the
+            calculations
+
+        Returns
+        -------
+        None
         """
         self.cpp_dc.set_pieces_to_be_considered(value)
 
 
     @property
     def result_dict( self ):
+        """
+        dict holding additional information about the integration process
+
+        Keys
+        ----
+        "err" : integration errors
+        "status" : gsl status codes
+        "msg" : gsl error message givin details in case of `nan`-results
+
+        Notes
+        -----
+        When self is initialized, the values of this dict are holding empty
+        arrays. In order to fill it, provide the `full_output` flag when
+        calling methods which use integration.
+        To retreive these information, type
+            self.result_dict
+        """
         return self._result_dict
 
 
     cdef void _set_result_dict( self, result_vec output_vec ):
+        """
+        PRIVATE MEMBER
+
+        writes additional information from integration process in
+        self.result_dict - IS CALLED INTERNALLY
+
+        Parameters
+        ----------
+        output_vec : std::vector<result>, where `result` is a c-struct holding
+            additional information concerning the integraion process
+
+        Returns
+        -------
+        None
+        """
         cdef int length = output_vec.size()
 
-        for elem in self._result_dict.values():
-            elem.resize( length, refcheck=False )
+        for key in ("err", "status"):
+            self._result_dict[key].resize( length, refcheck=False )
+        self._result_dict["msg"].clear()
 
         cdef int index = 0
         for result_struct in output_vec:
             self._result_dict["err"][index]     = result_struct.error
             self._result_dict["status"][index]  = result_struct.status
-            self._result_dict["msg"][index]     = result_struct.errormsg
+            self._result_dict["msg"].append(result_struct.errormsg)
             index += 1
 
-        print( "updated `result_dict` ...\n"
-               "type `<this-instance>.result_dict` to retreive it")
+        print("updated `result_dict` ...\n"
+              "type `<this-instance>.result_dict` to retreive it")
         return
 

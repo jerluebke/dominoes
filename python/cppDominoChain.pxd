@@ -2,6 +2,7 @@
 
 from libcpp cimport bool
 from libcpp.vector cimport vector
+from libcpp.string cimport string
 
 ctypedef vector[double] double_vec
 ctypedef vector[vector[double]] double_vec_2d
@@ -10,7 +11,9 @@ ctypedef vector[result] result_vec
 
 cdef extern from "GslQuad.hpp":
     ctypedef struct result:
-        pass
+        double error
+        int status
+        string errormsg
 
 
 cdef extern from "DominoChain.hpp":
@@ -30,10 +33,10 @@ cdef extern from "DominoChain.hpp":
                                           const bool) nogil
 
         double_vec_2d make_velocity_array(const double,
-                                         const double,
-                                         const int,
-                                         const double,
-                                         const bool) nogil
+                                          const double,
+                                          const int,
+                                          const double,
+                                          const bool) nogil
 
         double intrinsic_angular(const double,
                                  const double) nogil
