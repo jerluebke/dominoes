@@ -15,7 +15,8 @@ cdef extern from "GslQuad.hpp":
 
 cdef extern from "DominoChain.hpp":
     ctypedef struct domino:
-        pass
+        double height
+        double width
 
     cdef cppclass DominoChain:
         DominoChain(const domino&,
@@ -25,8 +26,8 @@ cdef extern from "DominoChain.hpp":
                     const double) nogil
 
         double_vec_2d make_velocity_array(const double_vec&,
-                                         const double,
-                                         const bool) nogil
+                                          const double,
+                                          const bool) nogil
 
         double_vec_2d make_velocity_array(const double,
                                          const double,
@@ -35,11 +36,11 @@ cdef extern from "DominoChain.hpp":
                                          const bool) nogil
 
         double intrinsic_angular(const double,
-                                const double) nogil
+                                 const double) nogil
 
         double intrinsic_transversal(const double,
-                                    const double,
-                                    const bool) nogil
+                                     const double,
+                                     const bool) nogil
 
         result_vec& get_full_output() nogil
 

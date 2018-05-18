@@ -12,5 +12,5 @@ setup(ext_modules = cythonize(
                             numpy.get_include()],
             library_dirs = ["../../gsl/build-dir/Debug"],
             libraries = ["gsl", "gslcblas"],
-            language = "c++" 
+            language = "c++"
         )))

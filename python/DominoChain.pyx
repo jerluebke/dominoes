@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# distutils: language = c++
 """
 TODO: docstring
 """
@@ -9,6 +8,7 @@ from cppDominoChain cimport *
 from collections import namedtuple
 import numpy as np
 cimport numpy as np
+
 
 #  ctypedef np.ndarray[ double, ndim=1, mode="c" ] 1d_array_f
 #  ctypedef np.ndarray[ double, ndim=2, mode="c" ] 2d_array_f
@@ -36,11 +36,13 @@ cdef class PyDominoChain:
                     int limit = 100,
                     double epsabs = 1.49e-8,
                     double epsrel = 1.49e-8 ):
-        if not isinstance(d_tuple, domino_tuple):
-            pass
         cdef domino d_struct
-        d_struct.height = d_tuple.height
-        d_struct.width = d_tuple.width
+        try:
+            d_struct.height = d_tuple.height
+            d_struct.width = d_tuple.width
+        except AttributeError:
+            raise AttributeError(
+                "The Domino Object passed as parameter needs to provide a `height` and a `width` attribute.")
         self.cpp_dc = new DominoChain( d_struct, N, limit, epsabs, epsrel )
 
 
@@ -48,7 +50,7 @@ cdef class PyDominoChain:
         del self.cpp_dc
 
 
-    cdef np.ndarray intrinsic_velocities( self,
+    cpdef np.ndarray intrinsic_velocities( self,
                                           np.ndarray np_lambdas,
                                           double mu,
                                           bool full_output = False ):
@@ -66,7 +68,7 @@ cdef class PyDominoChain:
         return np_result
 
 
-    cdef np.ndarray velocities_by_position( self,
+    cpdef np.ndarray velocities_by_position( self,
                                             double initial_angular,
                                             double spacing,
                                             int number_of_pieces,
@@ -85,7 +87,7 @@ cdef class PyDominoChain:
         return np_result
 
 
-    cdef double intrinsic_angular( self,
+    cpdef double intrinsic_angular( self,
                                    double spacing,
                                    double mu ):
         """
@@ -94,7 +96,7 @@ cdef class PyDominoChain:
         return self.cpp_dc.intrinsic_angular( spacing, mu )
 
 
-    cdef double intrinsic_transversal( self,
+    cpdef double intrinsic_transversal( self,
                                        double spacing,
                                        double angular,
                                        bool full_output ):
@@ -110,8 +112,7 @@ cdef class PyDominoChain:
         return result
 
 
-
-    cdef void set_pieces_to_be_considered(self, int value):
+    def set_pieces_to_be_considered(self, int value):
         """
         TODO
         """
