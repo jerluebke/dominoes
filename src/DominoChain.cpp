@@ -49,8 +49,9 @@ DominoChain::DominoChain(
 /*
  * Params:
  *  &lambdas    :   vector with spacings for which to calculate the velocities
- *  limit       :   memory size for integration (numbers of possible
- *      subintervals)
+ *  mu          :   double, coefficient of friction
+ *  full_output :   bool, whether to retreive additional information from
+ *      integrator and store it in m_full_output_vec
  *
  * Returns:
  *  double_vec_2d result,
@@ -90,10 +91,13 @@ double_vec_2d DominoChain::make_velocity_array(
 
 /*
  * Params:
- *  initial_angular :   the angular velocity with which the toppling domino
- *      chain was initiated
- *  lambda          :   spacing of this domino chain
- *  limt            :   see above
+ *  initial_angular :   double, the angular velocity with which the toppling
+ *      domino chain was initiated
+ *  lambda          :   double, spacing of this domino chain
+ *  mu              :   double, coefficient of friction
+ *  number_of_pieces    :   double, number of dominoes in chain
+ *  full_output :   bool, whether to retreive additional information from
+ *      integrator and store it in m_full_output_vec
  *
  * Returns:
  *  double_vec_2d result,
@@ -139,6 +143,22 @@ double_vec_2d DominoChain::make_velocity_array(
 }
 
 
+/*
+ * Params:
+ *  initial_angular :   the angular velocity with which the toppling domino
+ *      chain was initiated
+ *  &lambdas        :   vector with spacings for which to calculate the velocities
+ *  mu              :   double, coefficient of friction
+ *  full_output :   bool, whether to retreive additional information from
+ *      integrator and store it in m_full_output_vec
+ *
+ * Returns:
+ *  double_vec_2d result,
+ *   result[0][i]   :   spacial coordinate x
+ *   result[0][i]   :   angular velocity of the i-th domino
+ *   result[1][i]   :   transversal velocity at the i-th domino
+ *
+ */
 double_vec_2d DominoChain::make_velocity_array(
         const double initial_angular,
         const double_vec& lambdas,
@@ -150,6 +170,7 @@ double_vec_2d DominoChain::make_velocity_array(
 
     double_vec_2d result;
     result.resize( 3, double_vec() );
+    result[0].push_back( 0 );   // initial x coordinate
 
     params p;
     p.index = 0;
@@ -159,7 +180,8 @@ double_vec_2d DominoChain::make_velocity_array(
     for ( double lambda : lambdas )
     {
         p.eta = _eta( lambda );
-        result[0].push_back( p.index * (lambda + m_h) );
+        if ( p.index != 0 )     // skip first, already added
+            result[0].push_back( result[0].back() + lambda + m_h );
         result[1].push_back( p.angular );
         result[2].push_back(
                 transversal( integrator, p, lambda, _psi(lambda),

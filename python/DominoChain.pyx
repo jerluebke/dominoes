@@ -28,7 +28,7 @@ domino_tuple = namedtuple( "Domino", "height width" )
 
 cdef class PyDominoChain:
     """
-    PyDominoChain(domino_tuple, N=10, limit=10,
+    PyDominoChain(domino_tuple, N=10, limit=100,
                   epsabs=1.49e-8, epsrel=1.49e-8)
 
     A PyDominoChain-Instance holds various methods describing the dynamics of a
@@ -160,6 +160,40 @@ cdef class PyDominoChain:
         cdef double_vec_2d cpp_result = self.cpp_dc.make_velocity_array(
             initial_angular, spacing, number_of_pieces, mu, full_output )
         cdef np.ndarray np_result = np.array ( cpp_result, dtype=np.float64 )
+
+        if full_output:
+            self._set_result_dict( self.cpp_dc.get_full_output() )
+
+        return np_result
+
+
+    cpdef np.ndarray velocities_variable_spacing(self,
+                                                 double initial_angular,
+                                                 np.ndarray np_lambdas,
+                                                 double mu,
+                                                 bool full_output = False):
+        """
+        velocities_variable_spacing(initial_angular, lambdas, mu,
+            full_output=False)
+
+        Parameters
+        ----------
+        initial_angular : double, angular veloclity with which the toppeling of
+            the chain was initiated
+        lambdas : 1-dim array with different spacings for which to calculate
+            the intrinsic velocities for
+        mu : double, coefficient of friction
+        full_output : bool, whether to retreive additional information from
+            integrator
+
+        Returns
+        -------
+        2-dim array with shape (3, number_of_pieces) holding the x coordinate,
+            the angular and the transversal velocity by position
+        """
+        cdef double_vec_2d cpp_result = self.cpp_dc.make_velocity_array(
+            initial_angular, np_lambdas, mu, full_output )
+        cdef np.ndarray np_result = np.array( cpp_result, dtype=np.float64 )
 
         if full_output:
             self._set_result_dict( self.cpp_dc.get_full_output() )
