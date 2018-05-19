@@ -28,7 +28,7 @@ class DominoChain
     public:
         DominoChain (
                 const domino& d,
-                int N,
+                int N = 10,
                 const int limit = 100,
                 const double epsabs = 1.49e-8,
                 const double epsrel = 1.49e-8 );
@@ -136,6 +136,7 @@ class DominoChain
                 const double theta,
                 const double eta ) const;
 
+    protected:
         // instance helper methods
         double _psi( const double lambda ) const;   // angle of impact
         double _xi( const double psi ) const;       // height of impact

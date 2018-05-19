@@ -2,16 +2,13 @@
 
 /*
  * TODO:
- *  find out valid domain for parameters (hopefully from the mathematics ...)
- *  handle input accordingly (raise exception)
- *
- *  compile and wrap in cython
- *
  *  testing and optimizing, perhaps multithreading
+ *
+ *  make video
  *
  *  add least-square-fitting (which algorithm is used by numpy/scipy?)
  *
- * */
+ */
 
 int main()
 {
