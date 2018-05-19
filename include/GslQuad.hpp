@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gsl_function_cpp.hpp"
+#include "GslFunctionCpp.hpp"
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_integration.h>
 #include <memory>

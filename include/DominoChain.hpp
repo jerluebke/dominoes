@@ -45,6 +45,12 @@ class DominoChain
                 const double mu,
                 const bool full_output = false );
 
+        double_vec_2d make_velocity_array(
+                const double initial_angular,
+                const double_vec& lambdas,
+                const double mu,
+                const bool full_output = false );
+
         // for fitting μ
         // TODO:
         // add methods to return angular and transversal velocity at position x
@@ -59,10 +65,10 @@ class DominoChain
 
         // throws `out_of_range` if index is out of bounds!
         result get_full_output( const size_t index ) const
-        { return _full_output_vec.at(index); }
+        { return m_full_output_vec.at(index); }
 
         std::vector<result>& get_full_output( void )
-        { return _full_output_vec; }
+        { return m_full_output_vec; }
 
 		void set_pieces_to_be_considered( const int value )
 		{ m_N = value; }
@@ -79,7 +85,7 @@ class DominoChain
         const double_func theta_dot_wrapper;
 
         // full output of integration
-        std::vector<result> _full_output_vec;
+        std::vector<result> m_full_output_vec;
 
         // integrator params
         const size_t m_limit;
@@ -120,10 +126,12 @@ class DominoChain
         double P_over_K(
                 const double theta,
                 const double intitial_angular_speed ) const;
+
         double k(
                 const int piece_index,
                 const double theta_initial,
                 const double eta ) const;
+
         double theta_dot_rel(
                 const double theta,
                 const double eta ) const;

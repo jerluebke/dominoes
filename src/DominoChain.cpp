@@ -64,7 +64,7 @@ double_vec_2d DominoChain::make_velocity_array(
         const bool full_output )
 {
     if ( full_output )
-        _full_output_vec.clear();
+        m_full_output_vec.clear();
 
     double_vec_2d result;
     result.resize( 2, double_vec() );
@@ -110,7 +110,7 @@ double_vec_2d DominoChain::make_velocity_array(
         const bool full_output )
 {
     if ( full_output )
-        _full_output_vec.clear();
+        m_full_output_vec.clear();
 
     double_vec_2d result;
     result.resize( 3, double_vec() );
@@ -132,7 +132,41 @@ double_vec_2d DominoChain::make_velocity_array(
                 transversal( integrator, p, lambda, psi,
                     full_output ));
         p.angular = angular_next( p.index, p.angular, p.eta, theta_hat, R );
-        ++p.index;
+        ++ p.index;
+    }
+
+    return result;
+}
+
+
+double_vec_2d DominoChain::make_velocity_array(
+        const double initial_angular,
+        const double_vec& lambdas,
+        const double mu,
+        const bool full_output )
+{
+    if ( full_output )
+        m_full_output_vec.clear();
+
+    double_vec_2d result;
+    result.resize( 3, double_vec() );
+
+    params p;
+    p.index = 0;
+    p.angular = initial_angular;
+    GslQuad< double_func > integrator( theta_dot_wrapper, m_limit );
+
+    for ( double lambda : lambdas )
+    {
+        p.eta = _eta( lambda );
+        result[0].push_back( p.index * (lambda + m_h) );
+        result[1].push_back( p.angular );
+        result[2].push_back(
+                transversal( integrator, p, lambda, _psi(lambda),
+                    full_output ));
+        p.angular = angular_next( p.index, p.angular, p.eta,
+                _theta_hat(lambda), _R(lambda, mu) );
+        ++ p.index;
     }
 
     return result;
@@ -165,8 +199,8 @@ double DominoChain::intrinsic_transversal(
 
     if ( full_output )
     {
-        _full_output_vec.clear();
-        _full_output_vec.push_back( integrator.get_result() );
+        m_full_output_vec.clear();
+        m_full_output_vec.push_back( integrator.get_result() );
     }
 
     return ( lambda + m_h ) / time;
@@ -239,7 +273,7 @@ double DominoChain::transversal(
             m_epsabs, m_epsrel, full_output );
 
     if ( full_output )
-        _full_output_vec.push_back( integrator.get_result() );
+        m_full_output_vec.push_back( integrator.get_result() );
 
     return result;
 }
