@@ -259,7 +259,7 @@ int DominoChain::make_video(
     if ( failure )
         return -1;
 
-    DPRINT( "writer open: " << writer.isOpened() );
+    DPRINT( "writer open: " <<std::boolalpha << writer.isOpened() );
 
     double d_theta;
     double psi = _psi( lambda );
@@ -278,40 +278,40 @@ int DominoChain::make_video(
 }
 
 
-int DominoChain::make_video(
-        const std::string filename,
-        const double initial_angular,
-        const double_vec& lambdas,
-        const double mu,
-        const double fps,
-        const int width )
-{
-    int length = lambdas.size();
-    double_vec times = _get_times_between_collisions(
-            initial_angular, lambdas, mu );
-
-    cv::VideoWriter writer;
-    int failure = _open_writer(
-            writer, filename, fps, cv::Size(length, width) );
-    if ( failure )
-        return -1;
-
-    double d_theta;
-    double psi;
-    double xi_hat_rel;
-    for ( int index = 0; index < length; ++index )
-    {
-        psi = _psi( lambdas[index] );
-        xi_hat_rel = _xi( _theta_hat( lambdas[index] ) ) / m_L;
-        d_theta = psi / ( fps * times[index] );
-        for ( double theta = 0; theta < psi; theta += d_theta )
-            writer << _make_frame( length, width, index, theta, xi_hat_rel );
-    }
-    std::cerr << "Finished writing video!\n";
-
-    // writer is closed automatically when going out of scope
-    return 0;
-}
+// int DominoChain::make_video(
+//         const std::string filename,
+//         const double initial_angular,
+//         const double_vec& lambdas,
+//         const double mu,
+//         const double fps,
+//         const int width )
+// {
+//     int length = lambdas.size();
+//     double_vec times = _get_times_between_collisions(
+//             initial_angular, lambdas, mu );
+// 
+//     cv::VideoWriter writer;
+//     int failure = _open_writer(
+//             writer, filename, fps, cv::Size(length, width) );
+//     if ( failure )
+//         return -1;
+// 
+//     double d_theta;
+//     double psi;
+//     double xi_hat_rel;
+//     for ( int index = 0; index < length; ++index )
+//     {
+//         psi = _psi( lambdas[index] );
+//         xi_hat_rel = _xi( _theta_hat( lambdas[index] ) ) / m_L;
+//         d_theta = psi / ( fps * times[index] );
+//         for ( double theta = 0; theta < psi; theta += d_theta )
+//             writer << _make_frame( length, width, index, theta, xi_hat_rel );
+//     }
+//     std::cerr << "Finished writing video!\n";
+// 
+//     // writer is closed automatically when going out of scope
+//     return 0;
+// }
 
 
 //////////////////////
@@ -482,7 +482,8 @@ int DominoChain::_open_writer(
 {
     writer.open(
             filename,
-            CV_FOURCC('D', 'I', 'V', 'X'),
+            // CV_FOURCC('D', 'I', 'V', 'X'),
+            -1,
             fps,
             framesize,
             false /*isColor*/ );
@@ -502,8 +503,10 @@ cv::Mat DominoChain::_make_frame(
         const double theta,
         const double min_height ) const
 {
-    auto heights = std::make_unique<double[]>( length );
-    memset( &heights, 1, length );
+    // auto heights = std::make_unique<double[]>( length );
+    // std::unique_ptr<double[]> heights ( new double[length] );
+    double* heights = new double[length];
+    memset( heights, 1.0, length );
 
     double xi_rel;
     for ( int j = index; j >= 0; --j )
@@ -511,25 +514,29 @@ cv::Mat DominoChain::_make_frame(
         xi_rel = _xi( theta ) / m_L;
         if ( std::fabs( xi_rel - min_height ) < 0.004 /*≈1/256*/ )
         {
-            memset( &heights[0], min_height, index );
+            memset( heights, min_height, index );
             break;
         }
         else
             heights[j] = _xi( theta ) / m_L;
     }
 
-    auto mat_data = std::make_unique<double[]>( length * width );
-    memset( &mat_data, 1, length * width );
+    // auto mat_data = std::make_unique<double[]>( length * width );
+    double* mat_data = new double[length * width];
+    memset( mat_data, 1.0, length * width );
 
-    double start = 0;
+    int start = 0;
     for ( int k = 0; k <= index; ++k )
     {
-        memset( &mat_data[start], heights[k], width );
+        memset( mat_data+=start, heights[k], width );
         start += width;
     }
 
-    cv::Mat frame ((std::vector<double>( *mat_data.get() )));
+    cv::Mat frame ((std::vector<double>( *mat_data )));
     frame.reshape( 0, width );
+
+    delete[] heights;
+    delete[] mat_data;
 
     return frame.t();
 }

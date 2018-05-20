@@ -78,13 +78,13 @@ class DominoChain
                 const int length = 512,
                 const int width = 64 );
 
-        int make_video(
-                const std::string filename,
-                const double initial_angular,
-                const double_vec& lambdas,
-                const double mu,
-                const double fps = 30,
-                const int width = 64 );
+        // int make_video(
+        //         const std::string filename,
+        //         const double initial_angular,
+        //         const double_vec& lambdas,
+        //         const double mu,
+        //         const double fps = 30,
+        //         const int width = 64 );
 
         std::vector<result>& get_full_output( void )
         { return m_full_output_vec; }
@@ -171,11 +171,12 @@ class DominoChain
                 const cv::Size framesize );
 
         cv::Mat _make_frame(
+                double theta,
                 const int length,
                 const int width,
                 const int index,
-                const double theta,
-                const double min_height ) const;
+                const double min_height,
+                const double eta ) const;
 
         double_vec _get_times_between_collisions(
                 const double initial_angular,
