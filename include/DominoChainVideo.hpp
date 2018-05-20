@@ -32,7 +32,8 @@ class DominoChainVideo : public DominoChain
 
         cv::Mat _make_frame(
                 const int index,
-                const double theta ) const;
+                const double theta,
+                const double min_height ) const;
 
         double_vec _get_times_between_collisions(
                 const double initial_angular,

@@ -34,7 +34,7 @@ DominoChain::DominoChain(
             })
     , m_limit( limit ), m_epsabs( epsabs ), m_epsrel( epsrel )
     , m_N( N ), m_L( d.height ), m_h( d.width )
-    , m_phi( _phi(m_L, m_h) ), m_omega( _omega(m_L, m_phi) )
+    , m_phi(_phi( d.height, m_h )), m_omega(_omega( d.height, m_phi ))
 {
     // TODO: why doesn't this work when GslQuad members are `const`?
     // m_integrator = GslQuad<double_func> ( theta_dot, limit );
@@ -111,13 +111,15 @@ double_vec_2d DominoChain::make_velocity_array(
         const double lambda,
         const int number_of_pieces,
         const double mu,
-        const bool full_output )
+        const bool full_output,
+        const bool times_only )
 {
     if ( full_output )
         m_full_output_vec.clear();
 
+    int size = times_only ? 1 : 3;
     double_vec_2d result;
-    result.resize( 3, double_vec() );
+    result.resize( size, double_vec() );
 
     const double psi = _psi(lambda);
     const double theta_hat = _theta_hat(lambda);
@@ -130,11 +132,18 @@ double_vec_2d DominoChain::make_velocity_array(
 
     while ( p.index <= number_of_pieces )
     {
-        result[0].push_back( p.index * (lambda + m_h) );
-        result[1].push_back( p.angular );
-        result[2].push_back(
-                transversal( integrator, p, lambda, psi,
-                    full_output ));
+        if ( times_only )
+            result[0].push_back(
+                    integrator.integrate( p, 0, psi, m_epsabs, m_epsrel,
+                        full_output ));
+        else
+        {
+            result[0].push_back( p.index * (lambda + m_h) );
+            result[1].push_back( p.angular );
+            result[2].push_back(
+                    transversal( integrator, p, lambda, psi,
+                        full_output ));
+        }
         p.angular = angular_next( p.index, p.angular, p.eta, theta_hat, R );
         ++ p.index;
     }

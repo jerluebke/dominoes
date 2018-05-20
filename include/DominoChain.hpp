@@ -43,7 +43,8 @@ class DominoChain
                 const double lambda,
                 const int number_of_pieces,
                 const double mu,
-                const bool full_output = false );
+                const bool full_output = false,
+                const bool times_only = false );
 
         double_vec_2d make_velocity_array(
                 const double initial_angular,
@@ -94,7 +95,6 @@ class DominoChain
 
         // domino quantities
         int m_N;          // number of dominoes to be considered
-        const double m_L;       // domino height
         const double m_h;       // domino width
         const double m_phi;     // = arctan(h/L)
         const double m_omega;   // eigenfrequency
@@ -137,6 +137,8 @@ class DominoChain
                 const double eta ) const;
 
     protected:
+        const double m_L;       // domino height
+
         // instance helper methods
         double _psi( const double lambda ) const;   // angle of impact
         double _xi( const double psi ) const;       // height of impact
