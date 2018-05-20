@@ -21,7 +21,15 @@ class DominoChainVideo : public DominoChain
                 const std::string filename,
                 const double initial_angular,
                 const double lambda,
-                const double mu ) const;
+                const double mu );
+
+        double_vec_2d make_velocity_array(
+                const double initial_angular,
+                const double lambda,
+                const int number_of_pieces,
+                const double mu,
+                const bool full_output = false,
+                const bool times_only = false );
 
         double m_fps;
 
@@ -38,6 +46,6 @@ class DominoChainVideo : public DominoChain
         double_vec _get_times_between_collisions(
                 const double initial_angular,
                 const double lambda,
-                const double mu ) const;
+                const double mu );
 
 };

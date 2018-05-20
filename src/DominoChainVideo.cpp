@@ -1,6 +1,7 @@
 #include "../include/DominoChainVideo.hpp"
 #include <array>
 #include <memory>
+#include <iostream>
 
 
 //////////////////
@@ -29,7 +30,7 @@ int DominoChainVideo::make_video(
         const std::string filename,
         const double initial_angular,
         const double lambda,
-        const double mu ) const
+        const double mu )
 {
     double_vec times = _get_times_between_collisions(
             initial_angular, lambda, mu );
@@ -105,14 +106,13 @@ cv::Mat DominoChainVideo::_make_frame(
 double_vec DominoChainVideo::_get_times_between_collisions(
         const double initial_angular,
         const double lambda,
-        const double mu ) const
+        const double mu )
 {
-    double_vec_2d result = make_velocity_array(
+    return make_velocity_array(
             initial_angular,
             lambda,
             m_length,
             mu,
             false /*full_output*/,
-            true /*times_only*/ );
-    return result[0];
+            true /*times_only*/ )[0];
 }
