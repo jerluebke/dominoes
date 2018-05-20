@@ -1,9 +1,10 @@
 #include "../include/DominoChain.hpp"
 #include <cmath>
+#include <memory>
 
 
 #ifndef DEBUG
-#define DEBUG 0
+#define DEBUG 1
 #endif
 
 #ifdef DEBUG
@@ -172,7 +173,8 @@ double_vec_2d DominoChain::make_velocity_array(
         const double initial_angular,
         const double_vec& lambdas,
         const double mu,
-        const bool full_output )
+        const bool full_output,
+        const bool times_only )
 {
     if ( full_output )
         m_full_output_vec.clear();
@@ -235,6 +237,80 @@ double DominoChain::intrinsic_transversal(
     }
 
     return ( lambda + m_h ) / time;
+}
+
+
+int DominoChain::make_video(
+        const std::string filename,
+        const double initial_angular,
+        const double lambda,
+        const double mu,
+        const double fps,
+        const int length,
+        const int width )
+{
+    DPRINT( "entering..." );
+    double_vec times = _get_times_between_collisions(
+            initial_angular, lambda, length, mu );
+
+    cv::VideoWriter writer;
+    int failure = _open_writer(
+            writer, filename, fps, cv::Size(length, width) );
+    if ( failure )
+        return -1;
+
+    DPRINT( "writer open: " << writer.isOpened() );
+
+    double d_theta;
+    double psi = _psi( lambda );
+    double xi_hat_rel = _xi( _theta_hat( lambda ) ) / m_L;
+    for ( int index = 0; index < length; ++index )
+    {
+        DPRINT( index );
+        d_theta = psi / ( fps * times[index] );
+        for ( double theta = 0; theta < psi; theta += d_theta )
+            writer << _make_frame( length, width, index, theta, xi_hat_rel );
+    }
+    std::cerr << "Finished writing video!\n";
+
+    // writer is closed automatically when going out of scope
+    return 0;
+}
+
+
+int DominoChain::make_video(
+        const std::string filename,
+        const double initial_angular,
+        const double_vec& lambdas,
+        const double mu,
+        const double fps,
+        const int width )
+{
+    int length = lambdas.size();
+    double_vec times = _get_times_between_collisions(
+            initial_angular, lambdas, mu );
+
+    cv::VideoWriter writer;
+    int failure = _open_writer(
+            writer, filename, fps, cv::Size(length, width) );
+    if ( failure )
+        return -1;
+
+    double d_theta;
+    double psi;
+    double xi_hat_rel;
+    for ( int index = 0; index < length; ++index )
+    {
+        psi = _psi( lambdas[index] );
+        xi_hat_rel = _xi( _theta_hat( lambdas[index] ) ) / m_L;
+        d_theta = psi / ( fps * times[index] );
+        for ( double theta = 0; theta < psi; theta += d_theta )
+            writer << _make_frame( length, width, index, theta, xi_hat_rel );
+    }
+    std::cerr << "Finished writing video!\n";
+
+    // writer is closed automatically when going out of scope
+    return 0;
 }
 
 
@@ -392,5 +468,97 @@ double DominoChain::_theta_hat( const double lambda ) const
 double DominoChain::_eta( const double lambda ) const
 {
     return ( lambda + m_h ) / m_L;
+}
+
+
+// video helper methods
+
+// static
+int DominoChain::_open_writer(
+        cv::VideoWriter& writer,
+        const std::string filename,
+        const double fps,
+        const cv::Size framesize )
+{
+    writer.open(
+            filename,
+            CV_FOURCC('D', 'I', 'V', 'X'),
+            fps,
+            framesize,
+            false /*isColor*/ );
+    if ( !writer.isOpened() )
+    {
+        std::cerr << "ERROR: Failed to open `VideoWriter`\n";
+        return -1;
+    }
+    return 0;
+}
+
+// non-static
+cv::Mat DominoChain::_make_frame(
+        const int length,
+        const int width,
+        const int index,
+        const double theta,
+        const double min_height ) const
+{
+    auto heights = std::make_unique<double[]>( length );
+    memset( &heights, 1, length );
+
+    double xi_rel;
+    for ( int j = index; j >= 0; --j )
+    {
+        xi_rel = _xi( theta ) / m_L;
+        if ( std::fabs( xi_rel - min_height ) < 0.004 /*≈1/256*/ )
+        {
+            memset( &heights[0], min_height, index );
+            break;
+        }
+        else
+            heights[j] = _xi( theta ) / m_L;
+    }
+
+    auto mat_data = std::make_unique<double[]>( length * width );
+    memset( &mat_data, 1, length * width );
+
+    double start = 0;
+    for ( int k = 0; k <= index; ++k )
+    {
+        memset( &mat_data[start], heights[k], width );
+        start += width;
+    }
+
+    cv::Mat frame ((std::vector<double>( *mat_data.get() )));
+    frame.reshape( 0, width );
+
+    return frame.t();
+}
+
+double_vec DominoChain::_get_times_between_collisions(
+        const double initial_angular,
+        const double lambda,
+        const int length,
+        const double mu )
+{
+    return make_velocity_array(
+            initial_angular,
+            lambda,
+            length,
+            mu,
+            false /*full_output*/,
+            true /*times_only*/ )[0];
+}
+
+double_vec DominoChain::_get_times_between_collisions(
+        const double initial_angular,
+        const double_vec& lambdas,
+        const double mu )
+{
+    return make_velocity_array(
+            initial_angular,
+            lambdas,
+            mu,
+            false /*full_output*/,
+            true /*times_only*/ )[0];
 }
 

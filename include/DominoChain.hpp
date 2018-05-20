@@ -2,6 +2,10 @@
 
 #include "GslQuad.hpp"
 #include <vector>
+#include <string>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/videoio.hpp>
 
 
 typedef std::vector<double> double_vec;
@@ -50,7 +54,8 @@ class DominoChain
                 const double initial_angular,
                 const double_vec& lambdas,
                 const double mu,
-                const bool full_output = false );
+                const bool full_output = false,
+                const bool times_only = false );
 
         // for fitting μ
         // TODO:
@@ -64,9 +69,22 @@ class DominoChain
                 const double angular,
                 const bool full_output = false );
 
-        // throws `out_of_range` if index is out of bounds!
-        result get_full_output( const size_t index ) const
-        { return m_full_output_vec.at(index); }
+        int make_video(
+                const std::string filename,
+                const double initial_angular,
+                const double lambda,
+                const double mu,
+                const double fps = 30,
+                const int length = 512,
+                const int width = 64 );
+
+        int make_video(
+                const std::string filename,
+                const double initial_angular,
+                const double_vec& lambdas,
+                const double mu,
+                const double fps = 30,
+                const int width = 64 );
 
         std::vector<result>& get_full_output( void )
         { return m_full_output_vec; }
@@ -95,6 +113,7 @@ class DominoChain
 
         // domino quantities
         int m_N;          // number of dominoes to be considered
+        const double m_L;       // domino height
         const double m_h;       // domino width
         const double m_phi;     // = arctan(h/L)
         const double m_omega;   // eigenfrequency
@@ -136,9 +155,6 @@ class DominoChain
                 const double theta,
                 const double eta ) const;
 
-    protected:
-        const double m_L;       // domino height
-
         // instance helper methods
         double _psi( const double lambda ) const;   // angle of impact
         double _xi( const double psi ) const;       // height of impact
@@ -146,5 +162,30 @@ class DominoChain
                 const double mu ) const;            // transmission of angular speed
         double _theta_hat( const double lambda ) const;   // final angle
         double _eta( const double lambda ) const;   // = (λ+h)/L
+
+        // video helper methods
+        static int _open_writer(
+                cv::VideoWriter& writer,
+                const std::string filename,
+                const double fps,
+                const cv::Size framesize );
+
+        cv::Mat _make_frame(
+                const int length,
+                const int width,
+                const int index,
+                const double theta,
+                const double min_height ) const;
+
+        double_vec _get_times_between_collisions(
+                const double initial_angular,
+                const double lambda,
+                const int length,
+                const double mu );
+
+        double_vec _get_times_between_collisions(
+                const double initial_angular,
+                const double_vec& lambdas,
+                const double mu );
 
 };

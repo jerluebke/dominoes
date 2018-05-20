@@ -1,4 +1,4 @@
-#include "../include/DominoChainVideo.hpp"
+#include "../include/DominoChain.hpp"
 
 
 int main()
@@ -6,6 +6,7 @@ int main()
     domino d;
     d.height = 2;
     d.width = 0.4;
-    DominoChainVideo dc( d );
+    DominoChain dc( d );
+    std::cerr << "makeing video ...\n";
     return dc.make_video( "./video_01.avi", 6.0, 0.8, 0.2 );
 }
