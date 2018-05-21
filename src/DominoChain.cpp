@@ -4,7 +4,7 @@
 
 
 #ifndef DEBUG
-#define DEBUG 1
+#define DEBUG 0
 #endif
 
 #ifdef DEBUG
@@ -219,6 +219,9 @@ const double_vec_2d DominoChain::make_velocity_array(
 }
 
 
+/*
+ * Wrapper of private member function for easy use by user
+ */
 double DominoChain::intrinsic_angular(
         const double lambda,
         const double mu ) const
@@ -252,6 +255,8 @@ double DominoChain::intrinsic_transversal(
     return ( lambda + m_h ) / time;
 }
 
+
+#if VIDEO
 
 int DominoChain::make_video(
         const std::string filename,
@@ -352,6 +357,8 @@ int DominoChain::make_video(
     // writer is closed automatically when going out of scope
     return 0;
 }
+
+#endif
 
 
 //////////////////////
@@ -511,6 +518,8 @@ double DominoChain::_eta( const double lambda ) const
 }
 
 
+#if VIDEO
+
 // video helper methods
 // static
 int DominoChain::_open_writer(
@@ -594,4 +603,6 @@ const double_vec DominoChain::_get_times_between_collisions(
             false /*full_output*/,
             true /*times_only*/ )[0];
 }
+
+#endif
 

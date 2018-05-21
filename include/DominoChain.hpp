@@ -1,11 +1,18 @@
 #pragma once
 
+#ifndef VIDEO
+#define VIDEO 0
+#endif
+
 #include "GslQuad.hpp"
 #include <vector>
 #include <string>
+
+#if VIDEO
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
+#endif
 
 
 typedef std::vector<double> double_vec;
@@ -13,8 +20,8 @@ typedef std::vector< std::vector<double> > double_vec_2d;
 
 typedef struct domino_struct
 {
-    const double height;
-    const double width;
+    double height;
+    double width;
 } domino;
 
 typedef struct params_struct
@@ -37,6 +44,7 @@ class DominoChain
                 const double epsabs = 1.49e-8,
                 const double epsrel = 1.49e-8 );
 
+        // velocity vectors
         const double_vec_2d make_velocity_array(
                 const double_vec& lambdas,
                 const double mu,
@@ -58,8 +66,6 @@ class DominoChain
                 const bool times_only = false );
 
         // for fitting μ
-        // TODO:
-        // add methods to return angular and transversal velocity at position x
         double intrinsic_angular(
                 const double lambda,
                 const double mu ) const;
@@ -69,6 +75,7 @@ class DominoChain
                 const double angular,
                 const bool full_output = false );
 
+#if VIDEO
         int make_video(
                 const std::string filename,
                 const double initial_angular,
@@ -87,6 +94,7 @@ class DominoChain
                 const double fps = 30,
                 const int length = 512,
                 const int width = 64 ) const;
+#endif
 
         std::vector<result>& get_full_output( void )
         { return m_full_output_vec; }
@@ -165,6 +173,7 @@ class DominoChain
         double _theta_hat( const double lambda ) const;   // final angle
         double _eta( const double lambda ) const;   // = (λ+h)/L
 
+#if VIDEO
         // video helper methods
         static int _open_writer(
                 cv::VideoWriter& writer,
@@ -191,5 +200,6 @@ class DominoChain
                 const double initial_angular,
                 const double_vec& lambdas,
                 const double mu ) const;
+#endif
 
 };
