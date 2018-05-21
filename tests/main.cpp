@@ -15,7 +15,7 @@ int main()
     domino d;
     d.height = 0.02;    // m
     d.width = 0.004;    // m
-    double_vec mus { 0.1, 0.2, 0.4, 0.6 };
+    double_vec mus { 0.1, 0.2, 0.4, 0.6, 0.8 };
     DominoChain dc (d, 10, 20, 100);
     double_vec_2d intrinsic_velocities;
 

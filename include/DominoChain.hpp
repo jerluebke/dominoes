@@ -13,8 +13,8 @@ typedef std::vector< std::vector<double> > double_vec_2d;
 
 typedef struct domino_struct
 {
-    double height;
-    double width;
+    const double height;
+    const double width;
 } domino;
 
 typedef struct params_struct
