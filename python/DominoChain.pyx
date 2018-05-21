@@ -53,6 +53,7 @@ cdef class PyDominoChain:
     velocities_by_position
     intrinsic_angular
     intrinsic_transversal
+    make_video
     set_pieces_to_be_considered
 
     Attributes
@@ -246,7 +247,7 @@ cdef class PyDominoChain:
         return result
 
 
-    cpdef make_video(self,
+    cpdef int make_video(self,
                      str filename_str,
                      spacing,
                      double initial_angular,
@@ -255,8 +256,32 @@ cdef class PyDominoChain:
                      double fps = 30,
                      int length = 512,
                      int width = 64):
+        """
+        make_video(filename, spacing, initial_angular, mu, number_of_pieces,
+            fps, length, width)
+
+        Parameters
+        ----------
+        filename : name of the file to save the video in
+        spacing : scalar or numpy array holding the distances between the
+            dominoes
+        initial_angular : angular velocity with which the toppeling of the
+            dominoes was initiated
+        mu : coefficient of friction
+        number_of_pieces : number of dominoes in the chain
+            This needs to be evenly divisable by `length` since the number of
+            pixels to represent each piece on the screen is determined herewith.
+            If `spacing` is an array, its length is used instead and this
+            argument is ignored.
+        fps : frames per seconds of video
+        length, width: measurement of video in pixel
+
+        Returns
+        -------
+        int, status code (0: success, -1: failure)
+        """
         filename = filename_str.encode("utf-8")
-        if isinstance(spacing, float):
+        if isinstance(spacing, float) or isinstance(spacing, int):
             return self.cpp_dc.make_video(filename,
                                           initial_angular,
                                           spacing,
@@ -273,6 +298,9 @@ cdef class PyDominoChain:
                                           fps,
                                           length,
                                           width)
+        else:
+            raise ValueError(
+                "Datatype of `spacing` must be a number or a numpy array")
 
 
     def set_pieces_to_be_considered(self, int value):

@@ -186,9 +186,10 @@ class DominoChain
                 const int length,
                 const int width,
                 const int index,
-                const double eta,
                 const int pixelwidth_per_piece,
-                const double min_height = 0 ) const;
+                const double eta,
+                const double min_height = 0,
+                const double_vec* lambdas = nullptr ) const;
 
         const double_vec _get_times_between_collisions(
                 const double initial_angular,

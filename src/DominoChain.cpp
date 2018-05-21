@@ -303,7 +303,7 @@ int DominoChain::make_video(
         for ( double theta = 0; theta < psi; theta += d_theta )
             writer << _make_frame(
                     theta, length, width, index,
-                    _eta( lambda ), pixelwidth_per_piece, xi_hat_rel );
+                    pixelwidth_per_piece, _eta(lambda), xi_hat_rel );
     }
     std::cerr << "Finished writing video: " << filename << "\n";
 
@@ -350,7 +350,7 @@ int DominoChain::make_video(
         for ( double theta = 0; theta < psi; theta += d_theta )
             writer << _make_frame(
                     theta, length, width, index,
-                    _eta( lambdas[index] ), pixelwidth_per_piece, 0 );
+                    pixelwidth_per_piece, 0, 0, &lambdas );
     }
     std::cerr << "Finished writing video: " << filename << "\n";
 
@@ -549,17 +549,22 @@ const cv::Mat DominoChain::_make_frame(
         const int length,
         const int width,
         const int index,
-        const double eta,
         const int pixelwidth_per_piece,
-        const double min_height ) const
+        const double eta,
+        const double min_height,
+        const double_vec* lambdas ) const
 {
     double_vec heights( length * width, 1 );
     const int step = width * pixelwidth_per_piece;
     double xi_rel;
+    double eta_new;
 
     for ( int i = index; i >= 0; --i )
     {
         xi_rel = _xi( theta ) / m_L;
+        // if `min_height` is not 0, check if there is no more significant
+        // change in domino positions. In that case assign the remaining pieces
+        // with the corresponding value and exit the iteration
         if ( min_height && std::fabs( xi_rel - min_height ) < 0.004 /*≈1/256*/ )
         {
             std::fill_n( heights.begin(), (i+1) * step, min_height );
@@ -567,7 +572,8 @@ const cv::Mat DominoChain::_make_frame(
         }
         std::fill_n( heights.begin() += (i * step ), step, xi_rel );
         // θ_i+1 = arcsin(η * cos(θ_i) - h/L) + θ_i
-        theta = std::asin( eta * std::cos( theta ) - m_h / m_L ) + theta;
+        eta_new = lambdas ? _eta( lambdas->at(i) ) : eta;
+        theta = std::asin( eta_new * std::cos( theta ) - m_h / m_L ) + theta;
     }
 
     cv::Mat frame( heights );
