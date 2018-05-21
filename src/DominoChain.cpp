@@ -1,6 +1,6 @@
 #include "../include/DominoChain.hpp"
 #include <cmath>
-#include <memory>
+#include <algorithm>
 
 
 #ifndef DEBUG
@@ -249,7 +249,6 @@ int DominoChain::make_video(
         const int length,
         const int width )
 {
-    DPRINT( "entering..." );
     double_vec times = _get_times_between_collisions(
             initial_angular, lambda, length, mu );
 
@@ -260,16 +259,17 @@ int DominoChain::make_video(
         return -1;
 
     DPRINT( "writer open: " <<std::boolalpha << writer.isOpened() );
+    DPRINT( length << " x " << width );
 
     double d_theta;
     double psi = _psi( lambda );
     double xi_hat_rel = _xi( _theta_hat( lambda ) ) / m_L;
     for ( int index = 0; index < length; ++index )
     {
-        DPRINT( index );
         d_theta = psi / ( fps * times[index] );
         for ( double theta = 0; theta < psi; theta += d_theta )
-            writer << _make_frame( length, width, index, theta, xi_hat_rel );
+            writer << _make_frame(
+                    theta, length, width, index, xi_hat_rel, _eta( lambda ));
     }
     std::cerr << "Finished writing video!\n";
 
@@ -497,46 +497,26 @@ int DominoChain::_open_writer(
 
 // non-static
 cv::Mat DominoChain::_make_frame(
+        double theta,
         const int length,
         const int width,
         const int index,
-        const double theta,
-        const double min_height ) const
+        const double min_height,
+        const double eta ) const
 {
-    // auto heights = std::make_unique<double[]>( length );
-    // std::unique_ptr<double[]> heights ( new double[length] );
-    double* heights = new double[length];
-    memset( heights, 1.0, length );
-
+    double_vec heights( length * width, 1 );
     double xi_rel;
-    for ( int j = index; j >= 0; --j )
+    
+    for ( int i = index; i >= 0; --i )
     {
         xi_rel = _xi( theta ) / m_L;
-        if ( std::fabs( xi_rel - min_height ) < 0.004 /*≈1/256*/ )
-        {
-            memset( heights, min_height, index );
-            break;
-        }
-        else
-            heights[j] = _xi( theta ) / m_L;
+        std::fill_n( heights.begin() += (i * width), width, xi_rel );
+        // θ_i+1 = arcsin(η * cos(θ_i) - h/L) + θ_i
+        theta = std::asin( eta * std::cos( theta ) - m_h / m_L ) + theta;
     }
 
-    // auto mat_data = std::make_unique<double[]>( length * width );
-    double* mat_data = new double[length * width];
-    memset( mat_data, 1.0, length * width );
-
-    int start = 0;
-    for ( int k = 0; k <= index; ++k )
-    {
-        memset( mat_data+=start, heights[k], width );
-        start += width;
-    }
-
-    cv::Mat frame ((std::vector<double>( *mat_data )));
-    frame.reshape( 0, width );
-
-    delete[] heights;
-    delete[] mat_data;
+    cv::Mat frame( heights );
+    frame = frame.reshape( 0, length );
 
     return frame.t();
 }

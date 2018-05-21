@@ -8,5 +8,5 @@ int main()
     d.width = 0.4;
     DominoChain dc( d );
     std::cerr << "makeing video ...\n";
-    return dc.make_video( "./video_03.avi", 6.0, 0.8, 0.2 );
+    return dc.make_video( "./video_04.avi", 6.0, 0.8, 0.2 );
 }
