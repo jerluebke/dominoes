@@ -9,9 +9,11 @@ setup(ext_modules = cythonize(
             "DominoChain",
             sources = ["../src/DominoChain.cpp", "./DominoChain.pyx"],
             include_dirs = ["../include", "../../gsl/build-dir",
+                            "../../opencv/build/include",
                             numpy.get_include()],
-            library_dirs = ["../../gsl/build-dir/Debug"],
-            libraries = ["gsl", "gslcblas"],
+            library_dirs = ["../../gsl/build-dir/Debug",
+                            "../../opencv/build/x64/vc15/lib"],
+            libraries = ["gsl", "gslcblas", "opencv_world341", "opencv_world341d"],
             language = "c++",
-            extra_compile_args = ["-DHAVE_INLINE"]
+            extra_compile_args = ["-DHAVE_INLINE", "-DVIDEO"]
         )))

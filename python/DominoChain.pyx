@@ -246,6 +246,35 @@ cdef class PyDominoChain:
         return result
 
 
+    cpdef make_video(self,
+                     str filename_str,
+                     spacing,
+                     double initial_angular,
+                     double mu,
+                     int number_of_pieces = 128,
+                     double fps = 30,
+                     int length = 512,
+                     int width = 64):
+        filename = filename_str.encode("utf-8")
+        if isinstance(spacing, float):
+            return self.cpp_dc.make_video(filename,
+                                          initial_angular,
+                                          spacing,
+                                          mu,
+                                          number_of_pieces,
+                                          fps,
+                                          length,
+                                          width)
+        elif isinstance(spacing, np.ndarray):
+            return self.cpp_dc.make_video(filename,
+                                          initial_angular,
+                                          spacing,
+                                          mu,
+                                          fps,
+                                          length,
+                                          width)
+
+
     def set_pieces_to_be_considered(self, int value):
         """
         set_pieces_to_be_considered(value)

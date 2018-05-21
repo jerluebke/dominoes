@@ -36,11 +36,13 @@ cdef extern from "DominoChain.hpp":
                                           const double,
                                           const int,
                                           const double,
+                                          # const bool,
                                           const bool) nogil
 
         double_vec_2d make_velocity_array(const double,
                                           const double_vec&,
                                           const double,
+                                          # const bool,
                                           const bool) nogil
 
         double intrinsic_angular(const double,
@@ -49,6 +51,23 @@ cdef extern from "DominoChain.hpp":
         double intrinsic_transversal(const double,
                                      const double,
                                      const bool) nogil
+
+        int make_video(const string,
+                       const double,
+                       const double,
+                       const double,
+                       const int,
+                       const double,
+                       const int,
+                       const int) nogil
+
+        int make_video(const string,
+                       const double,
+                       const double_vec&,
+                       const double,
+                       const double,
+                       const int,
+                       const int) nogil
 
         result_vec& get_full_output() nogil
 

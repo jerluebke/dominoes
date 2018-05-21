@@ -556,7 +556,7 @@ const cv::Mat DominoChain::_make_frame(
     double_vec heights( length * width, 1 );
     const int step = width * pixelwidth_per_piece;
     double xi_rel;
-    
+
     for ( int i = index; i >= 0; --i )
     {
         xi_rel = _xi( theta ) / m_L;
