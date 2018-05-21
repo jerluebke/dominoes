@@ -37,12 +37,12 @@ class DominoChain
                 const double epsabs = 1.49e-8,
                 const double epsrel = 1.49e-8 );
 
-        double_vec_2d make_velocity_array(
+        const double_vec_2d make_velocity_array(
                 const double_vec& lambdas,
                 const double mu,
                 const bool full_output = false );
 
-        double_vec_2d make_velocity_array(
+        const double_vec_2d make_velocity_array(
                 const double initial_angular,
                 const double lambda,
                 const int number_of_pieces,
@@ -50,7 +50,7 @@ class DominoChain
                 const bool full_output = false,
                 const bool times_only = false );
 
-        double_vec_2d make_velocity_array(
+        const double_vec_2d make_velocity_array(
                 const double initial_angular,
                 const double_vec& lambdas,
                 const double mu,
@@ -74,6 +74,7 @@ class DominoChain
                 const double initial_angular,
                 const double lambda,
                 const double mu,
+                const int number_of_pieces = 128,
                 const double fps = 30,
                 const int length = 512,
                 const int width = 64 ) const;
@@ -170,21 +171,23 @@ class DominoChain
                 const double fps,
                 const cv::Size framesize );
 
-        cv::Mat _make_frame(
+        const cv::Mat _make_frame(
                 double theta,
                 const int length,
                 const int width,
                 const int index,
                 const double min_height,
-                const double eta ) const;
+                const double eta,
+                const int pixelwidth_per_piece,
+                const bool optimize = true ) const;
 
-        double_vec _get_times_between_collisions(
+        const double_vec _get_times_between_collisions(
                 const double initial_angular,
                 const double lambda,
                 const int length,
                 const double mu ) const;
 
-        double_vec _get_times_between_collisions(
+        const double_vec _get_times_between_collisions(
                 const double initial_angular,
                 const double_vec& lambdas,
                 const double mu ) const;
