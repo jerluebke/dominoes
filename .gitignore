@@ -4,6 +4,7 @@ dominoes/
 python/*.cpp
 python/.*c
 *.html
+*.avi
 
 # Python
 __pycache__/

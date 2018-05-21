@@ -1,7 +1,18 @@
 #pragma once
 
+#ifndef VIDEO
+#define VIDEO 0
+#endif
+
 #include "GslQuad.hpp"
 #include <vector>
+#include <string>
+
+#if VIDEO
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/videoio.hpp>
+#endif
 
 
 typedef std::vector<double> double_vec;
@@ -28,32 +39,33 @@ class DominoChain
     public:
         DominoChain (
                 const domino& d,
-                int N,
+                int N = 10,
                 const int limit = 100,
                 const double epsabs = 1.49e-8,
                 const double epsrel = 1.49e-8 );
 
-        double_vec_2d make_velocity_array(
+        // velocity vectors
+        const double_vec_2d make_velocity_array(
                 const double_vec& lambdas,
                 const double mu,
                 const bool full_output = false );
 
-        double_vec_2d make_velocity_array(
+        const double_vec_2d make_velocity_array(
                 const double initial_angular,
                 const double lambda,
                 const int number_of_pieces,
                 const double mu,
-                const bool full_output = false );
+                const bool full_output = false,
+                const bool times_only = false );
 
-        double_vec_2d make_velocity_array(
+        const double_vec_2d make_velocity_array(
                 const double initial_angular,
                 const double_vec& lambdas,
                 const double mu,
-                const bool full_output = false );
+                const bool full_output = false,
+                const bool times_only = false );
 
         // for fitting μ
-        // TODO:
-        // add methods to return angular and transversal velocity at position x
         double intrinsic_angular(
                 const double lambda,
                 const double mu ) const;
@@ -63,9 +75,26 @@ class DominoChain
                 const double angular,
                 const bool full_output = false );
 
-        // throws `out_of_range` if index is out of bounds!
-        result get_full_output( const size_t index ) const
-        { return m_full_output_vec.at(index); }
+#if VIDEO
+        int make_video(
+                const std::string filename,
+                const double initial_angular,
+                const double lambda,
+                const double mu,
+                const int number_of_pieces = 128,
+                const double fps = 30,
+                const int length = 512,
+                const int width = 64 ) const;
+
+        int make_video(
+                const std::string filename,
+                const double initial_angular,
+                const double_vec& lambdas,
+                const double mu,
+                const double fps = 30,
+                const int length = 512,
+                const int width = 64 ) const;
+#endif
 
         std::vector<result>& get_full_output( void )
         { return m_full_output_vec; }
@@ -143,5 +172,35 @@ class DominoChain
                 const double mu ) const;            // transmission of angular speed
         double _theta_hat( const double lambda ) const;   // final angle
         double _eta( const double lambda ) const;   // = (λ+h)/L
+
+#if VIDEO
+        // video helper methods
+        static int _open_writer(
+                cv::VideoWriter& writer,
+                const std::string filename,
+                const double fps,
+                const cv::Size framesize );
+
+        const cv::Mat _make_frame(
+                double theta,
+                const int length,
+                const int width,
+                const int index,
+                const int pixelwidth_per_piece,
+                const double eta,
+                const double min_height = 0,
+                const double_vec* lambdas = nullptr ) const;
+
+        const double_vec _get_times_between_collisions(
+                const double initial_angular,
+                const double lambda,
+                const int length,
+                const double mu ) const;
+
+        const double_vec _get_times_between_collisions(
+                const double initial_angular,
+                const double_vec& lambdas,
+                const double mu ) const;
+#endif
 
 };

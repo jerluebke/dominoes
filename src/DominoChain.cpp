@@ -1,5 +1,6 @@
 #include "../include/DominoChain.hpp"
 #include <cmath>
+#include <algorithm>
 
 
 #ifndef DEBUG
@@ -34,7 +35,7 @@ DominoChain::DominoChain(
             })
     , m_limit( limit ), m_epsabs( epsabs ), m_epsrel( epsrel )
     , m_N( N ), m_L( d.height ), m_h( d.width )
-    , m_phi( _phi(m_L, m_h) ), m_omega( _omega(m_L, m_phi) )
+    , m_phi(_phi( d.height, m_h )), m_omega(_omega( d.height, m_phi ))
 {
     // TODO: why doesn't this work when GslQuad members are `const`?
     // m_integrator = GslQuad<double_func> ( theta_dot, limit );
@@ -59,7 +60,7 @@ DominoChain::DominoChain(
  *   result[1][i]   :   transversal velocity for spacing lambdas[i]
  *
  */
-double_vec_2d DominoChain::make_velocity_array(
+const double_vec_2d DominoChain::make_velocity_array(
         const double_vec& lambdas,
         const double mu,
         const bool full_output )
@@ -67,8 +68,7 @@ double_vec_2d DominoChain::make_velocity_array(
     if ( full_output )
         m_full_output_vec.clear();
 
-    double_vec_2d result;
-    result.resize( 2, double_vec() );
+    double_vec_2d result( 2 );
 
     params p;
     p.index = m_N;
@@ -106,20 +106,19 @@ double_vec_2d DominoChain::make_velocity_array(
  *   result[1][i]   :   transversal velocity at the i-th domino
  *
  */
-double_vec_2d DominoChain::make_velocity_array(
+const double_vec_2d DominoChain::make_velocity_array(
         const double initial_angular,
         const double lambda,
         const int number_of_pieces,
         const double mu,
-        const bool full_output )
+        const bool full_output,
+        const bool times_only )
 {
     if ( full_output )
         m_full_output_vec.clear();
 
-    double_vec_2d result;
-    result.resize( 3, double_vec() );
-
-    const double psi = _psi(lambda);
+    double_vec_2d result( times_only ? 1 : 3 );
+    double psi = _psi(lambda);
     const double theta_hat = _theta_hat(lambda);
     const double R = _R(lambda, mu);
     params p;
@@ -130,11 +129,23 @@ double_vec_2d DominoChain::make_velocity_array(
 
     while ( p.index <= number_of_pieces )
     {
-        result[0].push_back( p.index * (lambda + m_h) );
-        result[1].push_back( p.angular );
-        result[2].push_back(
-                transversal( integrator, p, lambda, psi,
-                    full_output ));
+        if ( p.index == number_of_pieces )
+            psi = M_PI/2;
+
+        if ( times_only )
+        {
+            result[0].push_back(
+                    integrator.integrate( p, 0, psi, m_epsabs, m_epsrel,
+                        full_output ));
+        }
+        else
+        {
+            result[0].push_back( p.index * (lambda + m_h) );
+            result[1].push_back( p.angular );
+            result[2].push_back(
+                    transversal( integrator, p, lambda, psi,
+                        full_output ));
+        }
         p.angular = angular_next( p.index, p.angular, p.eta, theta_hat, R );
         ++ p.index;
     }
@@ -159,19 +170,21 @@ double_vec_2d DominoChain::make_velocity_array(
  *   result[1][i]   :   transversal velocity at the i-th domino
  *
  */
-double_vec_2d DominoChain::make_velocity_array(
+const double_vec_2d DominoChain::make_velocity_array(
         const double initial_angular,
         const double_vec& lambdas,
         const double mu,
-        const bool full_output )
+        const bool full_output,
+        const bool times_only )
 {
     if ( full_output )
         m_full_output_vec.clear();
 
-    double_vec_2d result;
-    result.resize( 3, double_vec() );
-    result[0].push_back( 0 );   // initial x coordinate
+    double_vec_2d result( times_only ? 1 : 3 );
+    if ( !times_only )
+        result[0].push_back( 0 );   // initial x coordinate
 
+    double psi;
     params p;
     p.index = 0;
     p.angular = initial_angular;
@@ -179,13 +192,24 @@ double_vec_2d DominoChain::make_velocity_array(
 
     for ( double lambda : lambdas )
     {
+        psi = ( p.index == lambdas.size()-1 ) ? M_PI/2 : _psi( lambda );
         p.eta = _eta( lambda );
-        if ( p.index != 0 )     // skip first, already added
-            result[0].push_back( result[0].back() + lambda + m_h );
-        result[1].push_back( p.angular );
-        result[2].push_back(
-                transversal( integrator, p, lambda, _psi(lambda),
-                    full_output ));
+
+        if ( times_only )
+            result[0].push_back(
+                    integrator.integrate( p, 0, psi,
+                        m_epsabs, m_epsrel, full_output ));
+        else
+        {
+            if ( p.index != 0 )     // skip first, already added
+                result[0].push_back( result[0].back() + lambda + m_h );
+
+            result[1].push_back( p.angular );
+            result[2].push_back(
+                    transversal( integrator, p, lambda, psi,
+                        full_output ));
+        }
+
         p.angular = angular_next( p.index, p.angular, p.eta,
                 _theta_hat(lambda), _R(lambda, mu) );
         ++ p.index;
@@ -195,6 +219,9 @@ double_vec_2d DominoChain::make_velocity_array(
 }
 
 
+/*
+ * Wrapper of private member function for easy use by user
+ */
 double DominoChain::intrinsic_angular(
         const double lambda,
         const double mu ) const
@@ -216,7 +243,7 @@ double DominoChain::intrinsic_transversal(
     p.eta = _eta( lambda );
     p.angular = angular;
     GslQuad<double_func> integrator( theta_dot_wrapper, m_limit );
-    double time = integrator.integrate(
+    const double time = integrator.integrate(
             p, 0, _psi( lambda ), m_epsabs, m_epsrel, full_output );
 
     if ( full_output )
@@ -227,6 +254,111 @@ double DominoChain::intrinsic_transversal(
 
     return ( lambda + m_h ) / time;
 }
+
+
+#if VIDEO
+
+int DominoChain::make_video(
+        const std::string filename,
+        const double initial_angular,
+        const double lambda,
+        const double mu,
+        const int number_of_pieces,
+        const double fps,
+        const int length,
+        const int width ) const
+{
+    if ( length % number_of_pieces != 0 )
+    {
+        std::cerr << "ERROR: `length` needs to be divisible by"
+            << "`number_of_pieces` without remainder!\n";
+        return -1;
+    }
+
+    const double_vec times = _get_times_between_collisions(
+            initial_angular, lambda, number_of_pieces, mu );
+
+    cv::VideoWriter writer;
+    if ( _open_writer(writer, filename, fps, cv::Size(length, width)) )
+        return -1;
+
+    DPRINT( length << " x " << width );
+
+    const int pixelwidth_per_piece = length / number_of_pieces;
+    double d_theta;
+    double psi = _psi( lambda );
+    const double xi_hat_rel = _xi( _theta_hat( lambda ) ) / m_L;
+    for ( int index = 0; index < number_of_pieces; ++index )
+    {
+        if ( gsl_isnan(times[index]) )
+        {
+            writer << cv::Mat::ones( width, length, CV_64F /*double*/ );
+            continue;
+        }
+
+        if ( index == number_of_pieces-1)
+            psi = M_PI/2;
+
+        d_theta = psi / ( fps * times[index] );
+        for ( double theta = 0; theta < psi; theta += d_theta )
+            writer << _make_frame(
+                    theta, length, width, index,
+                    pixelwidth_per_piece, _eta(lambda), xi_hat_rel );
+    }
+    std::cerr << "Finished writing video: " << filename << "\n";
+
+    // writer is closed automatically when going out of scope
+    return 0;
+}
+
+
+int DominoChain::make_video(
+        const std::string filename,
+        const double initial_angular,
+        const double_vec& lambdas,
+        const double mu,
+        const double fps,
+        const int length,
+        const int width ) const
+{
+    const int number_of_pieces = lambdas.size();
+    if ( length % number_of_pieces != 0 )
+    {
+        std::cerr << "ERROR: `length` needs to be divisible by"
+            << "size of `lambdas` without remainder!\n";
+        return -1;
+    }
+    const double_vec times = _get_times_between_collisions(
+            initial_angular, lambdas, mu );
+
+    cv::VideoWriter writer;
+    if ( _open_writer(writer, filename, fps, cv::Size(length, width)) )
+        return -1;
+
+    const int pixelwidth_per_piece = length / number_of_pieces;
+    double d_theta;
+    double psi;
+    for ( int index = 0; index < number_of_pieces; ++index )
+    {
+        if ( gsl_isnan(times[index]) )
+        {
+            writer << cv::Mat::ones( width, length, CV_64F /*double*/ );
+            continue;
+        }
+        psi = ( index == number_of_pieces-1 ) ? M_PI/2 : _psi( lambdas[index] );
+        d_theta = psi / ( fps * times[index] );
+        for ( double theta = 0; theta < psi; theta += d_theta )
+            writer << _make_frame(
+                    theta, length, width, index,
+                    pixelwidth_per_piece, 0, 0, &lambdas );
+    }
+    std::cerr << "Finished writing video: " << filename << "\n";
+
+    // writer is closed automatically when going out of scope
+    return 0;
+}
+
+#endif
 
 
 //////////////////////
@@ -244,9 +376,9 @@ double DominoChain::intrinsic_transversal(
 double DominoChain::theta_dot( const double theta, const int index,
         const double eta, const double angular ) const
 {
-    double k_value = k( index, theta, eta );
-    double P_over_K_value = P_over_K( theta, angular );
-    double theta_dot = angular * std::sqrt(
+    const double k_value = k( index, theta, eta );
+    const double P_over_K_value = P_over_K( theta, angular );
+    const double theta_dot = angular * std::sqrt(
             (k_value / (k_value - 1))
             * (1 - P_over_K_value / k_value) );
     return 1 / theta_dot;
@@ -273,8 +405,8 @@ double DominoChain::intrinsic_angular(
         const double theta_hat,
         const double R) const
 {
-    double k_value = k( m_N, 0.0, eta );
-    double return_val = m_omega * std::sqrt( ((k_value-1)/k_value)
+    const double k_value = k( m_N, 0.0, eta );
+    const double return_val = m_omega * std::sqrt( ((k_value-1)/k_value)
             * ( 2 * ( std::cos(m_phi) - std::cos(theta_hat - m_phi)) )
             / (k_value * R * R - k_value + 1) );
 	return return_val;
@@ -291,7 +423,7 @@ double DominoChain::transversal(
         const double psi,
         const bool full_output )
 {
-    double result = ( lambda + m_h ) / integrator.integrate( p, 0, psi,
+    const double result = ( lambda + m_h ) / integrator.integrate( p, 0, psi,
             m_epsabs, m_epsrel, full_output );
 
     if ( full_output )
@@ -308,8 +440,8 @@ double DominoChain::angular_next(
         double theta_hat,
         double R ) const
 {
-    double k_value = k( index, 0.0, eta );
-    double P_over_K_value = P_over_K( theta_hat, initial_val );
+    const double k_value = k( index, 0.0, eta );
+    const double P_over_K_value = P_over_K( theta_hat, initial_val );
     return initial_val * std::sqrt( ((k_value-1)/k_value)
             * (1 - P_over_K_value/k_value) ) / R;
 }
@@ -329,7 +461,7 @@ double DominoChain::k( const int piece_index, const double theta_initial,
     double theta_dot_rel_prod;
     double theta_dot_rel_value;
     double theta_i;
-    int pieces_to_consider = ( piece_index < m_N ) ? piece_index+1 : m_N;
+    const int pieces_to_consider = ( piece_index < m_N ) ? piece_index+1 : m_N;
 
     for ( int j = 0; j < pieces_to_consider; ++j )
     {
@@ -371,7 +503,7 @@ double DominoChain::_xi( const double psi ) const
 
 double DominoChain::_R( const double lambda, const double mu ) const
 {
-    double xi = _xi( _psi(lambda) );
+    const double xi = _xi( _psi(lambda) );
     return 1 + ( xi + mu * lambda ) / ( xi - mu * m_h );
 }
 
@@ -384,4 +516,99 @@ double DominoChain::_eta( const double lambda ) const
 {
     return ( lambda + m_h ) / m_L;
 }
+
+
+#if VIDEO
+
+// video helper methods
+// static
+int DominoChain::_open_writer(
+        cv::VideoWriter& writer,
+        const std::string filename,
+        const double fps,
+        const cv::Size framesize )
+{
+    writer.open(
+            filename,
+            // CV_FOURCC('D', 'I', 'V', 'X'),
+            -1,
+            fps,
+            framesize,
+            false /*isColor*/ );
+    if ( !writer.isOpened() )
+    {
+        std::cerr << "ERROR: Failed to open `VideoWriter`\n";
+        return -1;
+    }
+    return 0;
+}
+
+// non-static
+const cv::Mat DominoChain::_make_frame(
+        double theta,
+        const int length,
+        const int width,
+        const int index,
+        const int pixelwidth_per_piece,
+        const double eta,
+        const double min_height,
+        const double_vec* lambdas ) const
+{
+    double_vec heights( length * width, 1 );
+    const int step = width * pixelwidth_per_piece;
+    double xi_rel;
+    double eta_new;
+
+    for ( int i = index; i >= 0; --i )
+    {
+        xi_rel = _xi( theta ) / m_L;
+        // if `min_height` is not 0, check if there is no more significant
+        // change in domino positions. In that case assign the remaining pieces
+        // with the corresponding value and exit the iteration
+        if ( min_height && std::fabs( xi_rel - min_height ) < 0.004 /*≈1/256*/ )
+        {
+            std::fill_n( heights.begin(), (i+1) * step, min_height );
+            break;
+        }
+        std::fill_n( heights.begin() += (i * step ), step, xi_rel );
+        // θ_i+1 = arcsin(η * cos(θ_i) - h/L) + θ_i
+        eta_new = lambdas ? _eta( lambdas->at(i) ) : eta;
+        theta = std::asin( eta_new * std::cos( theta ) - m_h / m_L ) + theta;
+    }
+
+    cv::Mat frame( heights );
+    frame = frame.reshape( 0, length );
+
+    return frame.t();
+}
+
+const double_vec DominoChain::_get_times_between_collisions(
+        const double initial_angular,
+        const double lambda,
+        const int length,
+        const double mu ) const
+{
+    return const_cast<DominoChain*>(this)->make_velocity_array(
+            initial_angular,
+            lambda,
+            length,
+            mu,
+            false /*full_output*/,
+            true /*times_only*/ )[0];
+}
+
+const double_vec DominoChain::_get_times_between_collisions(
+        const double initial_angular,
+        const double_vec& lambdas,
+        const double mu ) const
+{
+    return const_cast<DominoChain*>(this)->make_velocity_array(
+            initial_angular,
+            lambdas,
+            mu,
+            false /*full_output*/,
+            true /*times_only*/ )[0];
+}
+
+#endif
 
