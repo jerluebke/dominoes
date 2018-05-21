@@ -76,7 +76,7 @@ class DominoChain
                 const double mu,
                 const double fps = 30,
                 const int length = 512,
-                const int width = 64 );
+                const int width = 64 ) const;
 
         // int make_video(
         //         const std::string filename,
@@ -182,11 +182,11 @@ class DominoChain
                 const double initial_angular,
                 const double lambda,
                 const int length,
-                const double mu );
+                const double mu ) const;
 
         double_vec _get_times_between_collisions(
                 const double initial_angular,
                 const double_vec& lambdas,
-                const double mu );
+                const double mu ) const;
 
 };

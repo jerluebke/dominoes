@@ -247,18 +247,15 @@ int DominoChain::make_video(
         const double mu,
         const double fps,
         const int length,
-        const int width )
+        const int width ) const
 {
     double_vec times = _get_times_between_collisions(
             initial_angular, lambda, length, mu );
 
     cv::VideoWriter writer;
-    int failure = _open_writer(
-            writer, filename, fps, cv::Size(length, width) );
-    if ( failure )
+    if ( _open_writer(writer, filename, fps, cv::Size(length, width)) )
         return -1;
 
-    DPRINT( "writer open: " <<std::boolalpha << writer.isOpened() );
     DPRINT( length << " x " << width );
 
     double d_theta;
@@ -472,7 +469,6 @@ double DominoChain::_eta( const double lambda ) const
 
 
 // video helper methods
-
 // static
 int DominoChain::_open_writer(
         cv::VideoWriter& writer,
@@ -525,9 +521,9 @@ double_vec DominoChain::_get_times_between_collisions(
         const double initial_angular,
         const double lambda,
         const int length,
-        const double mu )
+        const double mu ) const
 {
-    return make_velocity_array(
+    return const_cast<DominoChain*>(this)->make_velocity_array(
             initial_angular,
             lambda,
             length,
