@@ -73,7 +73,8 @@ class DominoChain
         double intrinsic_transversal(
                 const double lambda,
                 const double angular,
-                const bool full_output = false );
+                const bool full_output = false,
+                const bool times_only = false );
 
 #if VIDEO
         int make_video(

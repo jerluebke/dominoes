@@ -27,7 +27,6 @@ DominoChain::DominoChain(
         int limit,
         double epsabs,
         double epsrel )
-
     : theta_dot_wrapper(
             [this]( const double theta, const params& p ) -> double
             {
@@ -36,11 +35,7 @@ DominoChain::DominoChain(
     , m_limit( limit ), m_epsabs( epsabs ), m_epsrel( epsrel )
     , m_N( N ), m_L( d.height ), m_h( d.width )
     , m_phi(_phi( d.height, m_h )), m_omega(_omega( d.height, m_phi ))
-{
-    // TODO: why doesn't this work when GslQuad members are `const`?
-    // m_integrator = GslQuad<double_func> ( theta_dot, limit );
-    // m_integrator = std::make_unique<GslQuad<double_func>>(theta_dot, limit);
-}
+{}
 
 
 //////////////////////
@@ -236,7 +231,8 @@ double DominoChain::intrinsic_angular(
 double DominoChain::intrinsic_transversal(
         const double lambda,
         const double angular,
-        const bool full_output )
+        const bool full_output,
+        const bool times_only )
 {
     params p;
     p.index = m_N;
@@ -245,6 +241,9 @@ double DominoChain::intrinsic_transversal(
     GslQuad<double_func> integrator( theta_dot_wrapper, m_limit );
     const double time = integrator.integrate(
             p, 0, _psi( lambda ), m_epsabs, m_epsrel, full_output );
+
+    if ( times_only )
+        return time;
 
     if ( full_output )
     {
@@ -288,10 +287,12 @@ int DominoChain::make_video(
     double d_theta;
     double psi = _psi( lambda );
     const double xi_hat_rel = _xi( _theta_hat( lambda ) ) / m_L;
+    bool nan_occured = false;
     for ( int index = 0; index < number_of_pieces; ++index )
     {
         if ( gsl_isnan(times[index]) )
         {
+            nan_occured = true;
             writer << cv::Mat::ones( width, length, CV_64F /*double*/ );
             continue;
         }
@@ -305,6 +306,8 @@ int DominoChain::make_video(
                     theta, length, width, index,
                     pixelwidth_per_piece, _eta(lambda), xi_hat_rel );
     }
+    if ( nan_occured )
+        std::cerr << "WARNING: NaNs occured during calculation!\n";
     std::cerr << "Finished writing video: " << filename << "\n";
 
     // writer is closed automatically when going out of scope
@@ -338,10 +341,12 @@ int DominoChain::make_video(
     const int pixelwidth_per_piece = length / number_of_pieces;
     double d_theta;
     double psi;
+    bool nan_occured = false;
     for ( int index = 0; index < number_of_pieces; ++index )
     {
         if ( gsl_isnan(times[index]) )
         {
+            nan_occured = true;
             writer << cv::Mat::ones( width, length, CV_64F /*double*/ );
             continue;
         }
@@ -352,6 +357,8 @@ int DominoChain::make_video(
                     theta, length, width, index,
                     pixelwidth_per_piece, 0, 0, &lambdas );
     }
+    if ( nan_occured )
+        std::cerr << "WARNING: NaNs occured during calculation!\n";
     std::cerr << "Finished writing video: " << filename << "\n";
 
     // writer is closed automatically when going out of scope

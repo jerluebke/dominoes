@@ -50,6 +50,7 @@ cdef extern from "DominoChain.hpp":
 
         double intrinsic_transversal(const double,
                                      const double,
+                                     const bool,
                                      const bool) nogil
 
         int make_video(const string,

@@ -223,7 +223,8 @@ cdef class PyDominoChain:
     cpdef double intrinsic_transversal(self,
                                        double spacing,
                                        double angular,
-                                       bool full_output = False):
+                                       bool full_output = False,
+                                       bool times_only = False):
         """
         intrinsic_transversal(spacing, angular, full_output)
 
@@ -240,7 +241,8 @@ cdef class PyDominoChain:
         """
         cdef double result = self.cpp_dc.intrinsic_transversal(spacing,
                                                                angular,
-                                                               full_output)
+                                                               full_output,
+                                                               times_only)
         if full_output:
             self._set_result_dict( self.cpp_dc.get_full_output() )
 
