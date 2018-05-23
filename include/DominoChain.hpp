@@ -72,7 +72,7 @@ class DominoChain
 
         double intrinsic_transversal(
                 const double lambda,
-                const double angular,
+                const double mu,
                 const bool full_output = false,
                 const bool times_only = false );
 

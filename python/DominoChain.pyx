@@ -222,7 +222,7 @@ cdef class PyDominoChain:
 
     cpdef double intrinsic_transversal(self,
                                        double spacing,
-                                       double angular,
+                                       double mu,
                                        bool full_output = False,
                                        bool times_only = False):
         """
@@ -231,7 +231,7 @@ cdef class PyDominoChain:
         Parameters
         ----------
         spacing : distance between two pieces
-        angular : intrinsic angular velocity
+        mu : coefficient of friction
         full_output : whether to retreive additional information from
             integrator
 
@@ -240,7 +240,7 @@ cdef class PyDominoChain:
         float64, intrinsic transversal velocity for given configuration
         """
         cdef double result = self.cpp_dc.intrinsic_transversal(spacing,
-                                                               angular,
+                                                               mu,
                                                                full_output,
                                                                times_only)
         if full_output:
@@ -365,12 +365,11 @@ cdef class PyDominoChain:
             self._result_dict[key].resize( length, refcheck=False )
         self._result_dict["msg"].clear()
 
-        cdef int index = 0
-        for result_struct in output_vec:
+        for index in range(length):
+            result_struct = output_vec[index]
             self._result_dict["err"][index]     = result_struct.error
             self._result_dict["status"][index]  = result_struct.status
             self._result_dict["msg"].append(result_struct.errormsg)
-            index += 1
 
         print("updated `result_dict` ...\n"
               "type `<this-instance>.result_dict` to retreive it")

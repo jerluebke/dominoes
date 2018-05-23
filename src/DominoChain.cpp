@@ -230,14 +230,17 @@ double DominoChain::intrinsic_angular(
 
 double DominoChain::intrinsic_transversal(
         const double lambda,
-        const double angular,
+        const double mu,
         const bool full_output,
         const bool times_only )
 {
     params p;
     p.index = m_N;
     p.eta = _eta( lambda );
-    p.angular = angular;
+    p.angular = intrinsic_angular(
+            _eta( lambda ),
+            _theta_hat( lambda ),
+            _R( lambda, mu ));
     GslQuad<double_func> integrator( theta_dot_wrapper, m_limit );
     const double time = integrator.integrate(
             p, 0, _psi( lambda ), m_epsabs, m_epsrel, full_output );
