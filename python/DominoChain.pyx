@@ -19,6 +19,7 @@ date: May 2018
 from cppDominoChain cimport *
 
 from collections import namedtuple
+from numbers import Number
 import numpy as np
 cimport numpy as np
 
@@ -73,12 +74,12 @@ cdef class PyDominoChain:
                      "status"   : np.zeros(0, np.float64),
                      "msg"      : [] }
 
-    def __init__(self,
-                 d_tuple,
-                 int N = 10,
-                 int limit = 100,
-                 double epsabs = 1.49e-8,
-                 double epsrel = 1.49e-8):
+    def __cinit__(self,
+                  d_tuple,
+                  int N = 10,
+                  int limit = 100,
+                  double epsabs = 1.49e-8,
+                  double epsrel = 1.49e-8):
         """
         Initialize self. Full signature see class docstring
         """
@@ -100,7 +101,7 @@ cdef class PyDominoChain:
 
 
     cpdef np.ndarray intrinsic_velocities(self,
-                                          np.ndarray np_lambdas,
+                                          np.ndarray lambdas,
                                           double mu,
                                           bool full_output = False):
         """
@@ -119,18 +120,13 @@ cdef class PyDominoChain:
         2-dim array with shape (2, len(lambdas)) holding the intrinsic angular
             and transversal velocities
         """
-        if np_lambdas.ndim != 1:
-            raise ValueError("The provided array must be 1-dimensional")
-
-        cdef double_vec cpp_lambdas = np_lambdas
         cdef double_vec_2d cpp_result = self.cpp_dc.make_velocity_array(
-            cpp_lambdas, mu, full_output )
-        cdef np.ndarray np_result = np.array( cpp_result, dtype=np.float64 )
+            lambdas, mu, full_output )
 
         if full_output:
             self._set_result_dict( self.cpp_dc.get_full_output() )
 
-        return np_result
+        return np.array( cpp_result, dtype=np.float64 )
 
 
     cpdef np.ndarray velocities_by_position(self,
@@ -160,12 +156,11 @@ cdef class PyDominoChain:
         """
         cdef double_vec_2d cpp_result = self.cpp_dc.make_velocity_array(
             initial_angular, spacing, number_of_pieces, mu, full_output )
-        cdef np.ndarray np_result = np.array ( cpp_result, dtype=np.float64 )
 
         if full_output:
             self._set_result_dict( self.cpp_dc.get_full_output() )
 
-        return np_result
+        return np.array( cpp_result, dtype=np.float64 )
 
 
     cpdef np.ndarray velocities_variable_spacing(self,
@@ -194,12 +189,11 @@ cdef class PyDominoChain:
         """
         cdef double_vec_2d cpp_result = self.cpp_dc.make_velocity_array(
             initial_angular, np_lambdas, mu, full_output )
-        cdef np.ndarray np_result = np.array( cpp_result, dtype=np.float64 )
 
         if full_output:
             self._set_result_dict( self.cpp_dc.get_full_output() )
 
-        return np_result
+        return np.array( cpp_result, dtype=np.float64 )
 
 
     cpdef double intrinsic_angular(self,
@@ -250,14 +244,14 @@ cdef class PyDominoChain:
 
 
     cpdef int make_video(self,
-                     str filename_str,
-                     spacing,
-                     double initial_angular,
-                     double mu,
-                     int number_of_pieces = 128,
-                     double fps = 30,
-                     int length = 512,
-                     int width = 64):
+                         str filename_str,
+                         spacing,
+                         double initial_angular,
+                         double mu,
+                         int number_of_pieces = 128,
+                         double fps = 30,
+                         int length = 512,
+                         int width = 64):
         """
         make_video(filename, spacing, initial_angular, mu, number_of_pieces,
             fps, length, width)
@@ -283,7 +277,7 @@ cdef class PyDominoChain:
         int, status code (0: success, -1: failure)
         """
         filename = filename_str.encode("utf-8")
-        if isinstance(spacing, float) or isinstance(spacing, int):
+        if isinstance(spacing, Number):
             return self.cpp_dc.make_video(filename,
                                           initial_angular,
                                           spacing,
@@ -292,7 +286,12 @@ cdef class PyDominoChain:
                                           fps,
                                           length,
                                           width)
-        elif isinstance(spacing, np.ndarray):
+        else:
+            try:
+                spacing = np.array(spacing, dtype=np.float64)
+            except TypeError, ValueError:
+                raise ValueError("`spacing` must be a number or a numpy array")
+
             return self.cpp_dc.make_video(filename,
                                           initial_angular,
                                           spacing,
@@ -300,9 +299,6 @@ cdef class PyDominoChain:
                                           fps,
                                           length,
                                           width)
-        else:
-            raise ValueError(
-                "Datatype of `spacing` must be a number or a numpy array")
 
 
     def set_pieces_to_be_considered(self, int value):
@@ -372,6 +368,6 @@ cdef class PyDominoChain:
             self._result_dict["msg"].append(result_struct.errormsg)
 
         print("updated `result_dict` ...\n"
-              "type `<this-instance>.result_dict` to retreive it")
+              "type `self.result_dict` to retreive it")
         return
 

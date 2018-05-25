@@ -97,11 +97,9 @@ class DominoChain
                 const int width = 64 ) const;
 #endif
 
-        std::vector<result>& get_full_output( void )
-        { return m_full_output_vec; }
+        std::vector<result>& get_full_output( void );
 
-		void set_pieces_to_be_considered( const int value )
-		{ m_N = value; }
+		void set_pieces_to_be_considered( const int value );
 
 
     private:

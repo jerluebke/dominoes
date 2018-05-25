@@ -238,7 +238,7 @@ double DominoChain::intrinsic_transversal(
     p.index = m_N;
     p.eta = _eta( lambda );
     p.angular = intrinsic_angular(
-            _eta( lambda ),
+            p.eta,
             _theta_hat( lambda ),
             _R( lambda, mu ));
     GslQuad<double_func> integrator( theta_dot_wrapper, m_limit );
@@ -369,6 +369,17 @@ int DominoChain::make_video(
 }
 
 #endif
+
+
+std::vector<result>& DominoChain::get_full_output( void )
+{
+    return m_full_output_vec;
+}
+
+void DominoChain::set_pieces_to_be_considered( const int value )
+{
+    m_N = value;
+}
 
 
 //////////////////////
