@@ -3,14 +3,18 @@
 #include <algorithm>
 
 
-#ifndef DEBUG
-#define DEBUG 0
+#ifndef PRINT_EXTRA
+#define PRINT_EXTRA 0
 #endif
 
-#ifdef DEBUG
+#ifdef PRINT_EXTRA
 #define DPRINT(x) do { std::cerr << x << '\n'; } while (0)
 #else
 #define DPRINT(x)
+#endif
+
+#ifndef WITH_R
+#define WITH_R 1
 #endif
 
 
@@ -58,12 +62,13 @@ DominoChain::DominoChain(
 const double_vec_2d DominoChain::make_velocity_array(
         const double_vec& lambdas,
         const double mu,
-        const bool full_output )
+        const bool full_output,
+        const bool times_only )
 {
     if ( full_output )
         m_full_output_vec.clear();
 
-    double_vec_2d result( 2 );
+    double_vec_2d result( times_only ? 1 : 2 );
 
     params p;
     p.index = m_N;
@@ -74,10 +79,19 @@ const double_vec_2d DominoChain::make_velocity_array(
         p.eta = _eta( lambda );
         p.angular = intrinsic_angular(
                 p.eta, _theta_hat(lambda), _R(lambda, mu) );
-        result[0].push_back( p.angular );
-        result[1].push_back(
-                transversal( integrator, p, lambda, _psi(lambda),
-                    full_output ));
+        if ( times_only )
+        {
+            result[0].push_back(
+                    integrator.integrate( p, 0, _psi(lambda),
+                        m_epsabs, m_epsrel, full_output ));
+        }
+        else
+        {
+            result[0].push_back( p.angular );
+            result[1].push_back(
+                    transversal( integrator, p, lambda, _psi(lambda),
+                        full_output ));
+        }
     }
 
     return result;
@@ -524,8 +538,13 @@ double DominoChain::_xi( const double psi ) const
 
 double DominoChain::_R( const double lambda, const double mu ) const
 {
+#if WITH_R
     const double xi = _xi( _psi(lambda) );
     return 1 + ( xi + mu * lambda ) / ( xi - mu * m_h );
+#else
+    DPRINT( "R = 1" );
+    return 1;
+#endif
 }
 
 double DominoChain::_theta_hat( const double lambda ) const

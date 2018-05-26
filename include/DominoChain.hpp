@@ -48,7 +48,8 @@ class DominoChain
         const double_vec_2d make_velocity_array(
                 const double_vec& lambdas,
                 const double mu,
-                const bool full_output = false );
+                const bool full_output = false,
+                const bool times_only = false );
 
         const double_vec_2d make_velocity_array(
                 const double initial_angular,

@@ -30,19 +30,20 @@ cdef extern from "DominoChain.hpp":
 
         double_vec_2d make_velocity_array(const double_vec&,
                                           const double,
+                                          const bool,
                                           const bool) nogil
 
         double_vec_2d make_velocity_array(const double,
                                           const double,
                                           const int,
                                           const double,
-                                          # const bool,
+                                          const bool,
                                           const bool) nogil
 
         double_vec_2d make_velocity_array(const double,
                                           const double_vec&,
                                           const double,
-                                          # const bool,
+                                          const bool,
                                           const bool) nogil
 
         double intrinsic_angular(const double,

@@ -103,7 +103,8 @@ cdef class PyDominoChain:
     cpdef np.ndarray intrinsic_velocities(self,
                                           np.ndarray lambdas,
                                           double mu,
-                                          bool full_output = False):
+                                          bool full_output = False,
+                                          bool times_only = False):
         """
         intrinsic_velocities(lambdas, mu, full_output=False)
 
@@ -121,7 +122,7 @@ cdef class PyDominoChain:
             and transversal velocities
         """
         cdef double_vec_2d cpp_result = self.cpp_dc.make_velocity_array(
-            lambdas, mu, full_output )
+            lambdas, mu, full_output, times_only)
 
         if full_output:
             self._set_result_dict( self.cpp_dc.get_full_output() )
@@ -134,7 +135,8 @@ cdef class PyDominoChain:
                                             double spacing,
                                             int number_of_pieces,
                                             double mu,
-                                            bool full_output = False):
+                                            bool full_output = False,
+                                            bool times_only = False):
         """
         velocities_by_position(initial_angular, spacing, number_of_pieces,
             mu, full_output=False)
@@ -155,7 +157,8 @@ cdef class PyDominoChain:
             the angular and the transversal velocity by position
         """
         cdef double_vec_2d cpp_result = self.cpp_dc.make_velocity_array(
-            initial_angular, spacing, number_of_pieces, mu, full_output )
+            initial_angular, spacing, number_of_pieces, mu, full_output,
+            times_only)
 
         if full_output:
             self._set_result_dict( self.cpp_dc.get_full_output() )
@@ -167,7 +170,8 @@ cdef class PyDominoChain:
                                                  double initial_angular,
                                                  np.ndarray np_lambdas,
                                                  double mu,
-                                                 bool full_output = False):
+                                                 bool full_output = False,
+                                                 bool times_only = False):
         """
         velocities_variable_spacing(initial_angular, lambdas, mu,
             full_output=False)
@@ -188,7 +192,7 @@ cdef class PyDominoChain:
             the angular and the transversal velocity by position
         """
         cdef double_vec_2d cpp_result = self.cpp_dc.make_velocity_array(
-            initial_angular, np_lambdas, mu, full_output )
+            initial_angular, np_lambdas, mu, full_output, times_only)
 
         if full_output:
             self._set_result_dict( self.cpp_dc.get_full_output() )
@@ -220,7 +224,7 @@ cdef class PyDominoChain:
                                        bool full_output = False,
                                        bool times_only = False):
         """
-        intrinsic_transversal(spacing, angular, full_output)
+        intrinsic_transversal(spacing, mu, full_output)
 
         Parameters
         ----------

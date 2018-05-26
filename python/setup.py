@@ -1,8 +1,19 @@
 # -*- coding: utf-8 -*-
 
+import sys
 from distutils.core import setup, Extension
 from Cython.Build import cythonize
 import numpy
+
+MAKROS = ["-DHAVE_INLINE", "-DVIDEO"]
+
+if "--print_extra" in sys.argv:
+    print("Debug mode ...")
+    MAKROS.extend(["-DPRINT_EXTRA", "-DWITH_R=0"])
+    NAME = "DominoChainD"
+    sys.argv.remove("--print_extra")
+else:
+    NAME = "DominoChain"
 
 setup(ext_modules = cythonize(
         Extension(
@@ -13,7 +24,8 @@ setup(ext_modules = cythonize(
                             numpy.get_include()],
             library_dirs = ["../../gsl/build-dir/Debug",
                             "../../opencv/build/x64/vc15/lib"],
-            libraries = ["gsl", "gslcblas", "opencv_world341", "opencv_world341d"],
+            libraries = ["gsl", "gslcblas", "opencv_world341"],
             language = "c++",
-            extra_compile_args = ["-DHAVE_INLINE", "-DVIDEO"]
-        )))
+            extra_compile_args = MAKROS
+        )),
+    name = NAME)
