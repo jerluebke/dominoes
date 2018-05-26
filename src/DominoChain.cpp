@@ -4,7 +4,7 @@
 
 
 #ifndef PRINT_EXTRA
-#define PRINT_EXTRA 0
+#define PRINT_EXTRA 1
 #endif
 
 #ifdef PRINT_EXTRA
@@ -13,8 +13,16 @@
 #define DPRINT(x)
 #endif
 
+#ifndef R_MOD
+#define R_MOD 0
+#endif
+
 #ifndef WITH_R
+#if R_MOD
+#define WITH_R 0
+#else
 #define WITH_R 1
+#endif
 #endif
 
 
@@ -540,7 +548,14 @@ double DominoChain::_R( const double lambda, const double mu ) const
 {
 #if WITH_R
     const double xi = _xi( _psi(lambda) );
-    return 1 + ( xi + mu * lambda ) / ( xi - mu * m_h );
+    const double R = 1 + ( xi + mu * lambda ) / ( xi - mu * m_h );
+    DPRINT( "R = " << R );
+    return R;
+#elif R_MOD
+    const double xi = _xi( _psi(lambda) );
+    const double R = ( xi + mu * lambda ) / ( xi - mu * m_h );
+    DPRINT( "R = " << R );
+    return R;
 #else
     DPRINT( "R = 1" );
     return 1;
