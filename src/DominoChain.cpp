@@ -3,9 +3,17 @@
 #include <algorithm>
 
 
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
+// Having the seperate `PRINT_EXTRA` Makro allows to set more verbose output
+// wihtout having the need to compile in Debug mode
+#if DEBUG
 #ifndef PRINT_EXTRA
 #define PRINT_EXTRA 1
-#endif
+#endif /*PRINT_EXTRA*/
+#endif /*DEBUG*/
 
 #ifdef PRINT_EXTRA
 #define DPRINT(x) do { std::cerr << x << '\n'; } while (0)
@@ -13,17 +21,11 @@
 #define DPRINT(x)
 #endif
 
-#ifndef R_MOD
-#define R_MOD 0
+// This modifies `double DominoChain::_R(double)`
+#ifndef R_ORIG
+#define R_ORIG 0
 #endif
 
-#ifndef WITH_R
-#if R_MOD
-#define WITH_R 0
-#else
-#define WITH_R 1
-#endif
-#endif
 
 
 const double G = 9.80665;
@@ -546,20 +548,14 @@ double DominoChain::_xi( const double psi ) const
 
 double DominoChain::_R( const double lambda, const double mu ) const
 {
-#if WITH_R
     const double xi = _xi( _psi(lambda) );
+#if R_ORIG
     const double R = 1 + ( xi + mu * lambda ) / ( xi - mu * m_h );
-    DPRINT( "R = " << R );
-    return R;
-#elif R_MOD
-    const double xi = _xi( _psi(lambda) );
-    const double R = ( xi + mu * lambda ) / ( xi - mu * m_h );
-    DPRINT( "R = " << R );
-    return R;
 #else
-    DPRINT( "R = 1" );
-    return 1;
+    const double R = ( xi + mu * lambda ) / ( xi - mu * m_h );
 #endif
+    DPRINT( "R = " << R );
+    return R;
 }
 
 double DominoChain::_theta_hat( const double lambda ) const

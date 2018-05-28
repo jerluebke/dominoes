@@ -7,13 +7,13 @@ import numpy
 
 MAKROS = ["-DHAVE_INLINE", "-DVIDEO"]
 
-if "--r_eq_one" in sys.argv:
+if "--print_extra" in sys.argv:
     print("Debug mode ...")
-    MAKROS.extend(["-DPRINT_EXTRA", "-DWITH_R=0"])
-    sys.argv.remove("--r_eq_one")
+    MAKROS.extend(["-DPRINT_EXTRA"])
+    sys.argv.remove("--print_extra")
 elif "--rmod" in sys.argv:
     print("using modified R value ...")
-    MAKROS.extend(["-DPRINT_EXTRA", "-DR_MOD=1"])
+    MAKROS.extend(["-DPRINT_EXTRA", "-DR_ORIG=1"])
     sys.argv.remove("--rmod")
 
 setup(ext_modules = cythonize(
